@@ -9,6 +9,8 @@ struct PopoverView: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 30)) { context in
             VStack(spacing: 10) {
+                toolbar(now: context.date)
+
                 if settings.enabledProviders.isEmpty {
                     Text("Aucun provider activé")
                         .foregroundStyle(.secondary)
@@ -24,7 +26,6 @@ struct PopoverView: View {
                         status: store.statuses[kind] ?? .unknown
                     )
                 }
-                footer(now: context.date)
             }
             .padding(12)
         }
@@ -32,8 +33,8 @@ struct PopoverView: View {
         .background(.ultraThinMaterial)
     }
 
-    private func footer(now: Date) -> some View {
-        HStack(spacing: 12) {
+    private func toolbar(now: Date) -> some View {
+        HStack(spacing: 8) {
             Group {
                 if store.isRefreshing {
                     Text("Mise à jour…")
@@ -72,6 +73,6 @@ struct PopoverView: View {
             .help("Quitter")
         }
         .buttonStyle(.borderless)
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 2)
     }
 }

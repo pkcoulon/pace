@@ -130,34 +130,37 @@ struct UsageRow: View {
     private var level: UsageLevel { UsageLevel(percent: window?.utilization) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: compact ? 3 : 5) {
             HStack(alignment: .firstTextBaseline) {
-                Text(title)
-                    .font(compact ? .caption : .subheadline)
-                    .foregroundStyle(compact ? .secondary : .primary)
+                Text(title.uppercased())
+                    .font(compact ? .caption2 : .caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
+                    .tracking(0.4)
                 Spacer()
                 Text(window.map { UsageFormat.percent($0.utilization) } ?? "—")
-                    .font(compact ? Font.caption.monospacedDigit() : Font.subheadline.monospacedDigit())
+                    .font(compact ? Font.subheadline.weight(.semibold).monospacedDigit()
+                                  : Font.title3.weight(.bold).monospacedDigit())
                     .foregroundStyle(level.color)
             }
             ProgressBar(
                 fraction: (window?.utilization ?? 0) / 100,
                 color: level.color,
-                height: compact ? 4 : 7,
+                height: compact ? 4 : 8,
                 paceMarker: pacing?.marker
             )
             if let subtitle {
                 Text(subtitle)
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.tertiary)
             }
             if let pacing {
                 HStack(spacing: 4) {
                     Image(systemName: pacing.icon)
-                        .font(.system(size: 9))
+                        .font(.system(size: 10))
                     Text(pacing.message)
                 }
-                .font(.caption2)
+                .font(pacing.level == .tight ? .caption.weight(.medium) : .caption2)
                 .foregroundStyle(pacing.color)
             }
         }
