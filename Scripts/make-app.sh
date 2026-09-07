@@ -12,6 +12,7 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/Pace"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+cp Resources/Pace.icns "$APP/Contents/Resources/Pace.icns"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 
 # Signature : identité stable via SIGN_IDENTITY (empreinte ou nom du certificat),

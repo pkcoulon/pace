@@ -4,15 +4,18 @@ import Combine
 @MainActor
 final class UsageStore: ObservableObject {
     @Published private(set) var states: [ProviderKind: ProviderState] = [:]
+    @Published private(set) var statuses: [ProviderKind: ProviderStatus] = [:]
     @Published private(set) var lastRefresh: Date?
     @Published private(set) var isRefreshing = false
 
     private let settings: SettingsStore
     private let providers: [ProviderKind: any UsageProvider]
     private let notifications: NotificationService
+    private let statusService = StatusService()
     private var retryAt: [ProviderKind: Date] = [:]
     private var consecutiveRateLimits: [ProviderKind: Int] = [:]
     private var loop: Task<Void, Never>?
+    private var statusLoop: Task<Void, Never>?
     private var cancellables: Set<AnyCancellable> = []
     private var watchers: [DirectoryWatcher] = []
 
@@ -50,6 +53,31 @@ final class UsageStore: ObservableObject {
         notifications.requestAuthorization()
         startWatchers()
         restartLoop()
+        startStatusLoop()
+    }
+
+    /// Surveille les pages de statut Anthropic / OpenAI, sur une cadence lente.
+    private func startStatusLoop() {
+        statusLoop?.cancel()
+        statusLoop = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let self else { return }
+                await refreshStatuses()
+                try? await Task.sleep(for: .seconds(300))
+            }
+        }
+    }
+
+    private func refreshStatuses() async {
+        let kinds = settings.enabledProviders
+        await withTaskGroup(of: (ProviderKind, ProviderStatus).self) { group in
+            for kind in kinds {
+                group.addTask { [statusService] in (kind, await statusService.fetch(kind)) }
+            }
+            for await (kind, status) in group {
+                statuses[kind] = status
+            }
+        }
     }
 
     /// Rafraîchit dès que les credentials de Claude Code ou de Codex changent sur disque.

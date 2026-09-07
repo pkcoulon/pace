@@ -16,7 +16,13 @@ struct PopoverView: View {
                         .padding(.vertical, 20)
                 }
                 ForEach(settings.enabledProviders) { kind in
-                    ProviderCard(kind: kind, state: store.states[kind] ?? .idle, now: context.date, showPacing: settings.showPacing)
+                    ProviderCard(
+                        kind: kind,
+                        state: store.states[kind] ?? .idle,
+                        now: context.date,
+                        showPacing: settings.showPacing,
+                        status: store.statuses[kind] ?? .unknown
+                    )
                 }
                 footer(now: context.date)
             }

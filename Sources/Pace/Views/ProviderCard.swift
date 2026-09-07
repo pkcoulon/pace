@@ -6,12 +6,27 @@ struct ProviderCard: View {
     let state: ProviderState
     let now: Date
     var showPacing: Bool = true
+    var status: ProviderStatus = .unknown
 
     @State private var hovering = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 11) {
             header
+
+            if status.level.isProblem {
+                Label {
+                    Text("\(status.level.label)\(status.detail.map { " · \($0)" } ?? "")")
+                } icon: {
+                    Image(systemName: status.level.icon)
+                }
+                .font(.caption)
+                .foregroundStyle(status.level.color)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(status.level.color.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            }
 
             if let usage = state.usage {
                 if let fiveHour = usage.fiveHour {
@@ -83,6 +98,11 @@ struct ProviderCard: View {
                 .background(Color.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
             Text(kind.displayName)
                 .font(.headline)
+            if status.level.isProblem {
+                Image(systemName: status.level.icon)
+                    .font(.system(size: 10))
+                    .foregroundStyle(status.level.color)
+            }
             Image(systemName: "arrow.up.forward")
                 .font(.system(size: 9, weight: .semibold))
                 .foregroundStyle(.tertiary)

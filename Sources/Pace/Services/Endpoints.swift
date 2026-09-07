@@ -15,6 +15,10 @@ enum Endpoints {
     static let codexUsage = URL(string: "https://chatgpt.com/backend-api/wham/usage")!
     static let codexTokenRefresh = URL(string: "https://auth.openai.com/oauth/token")!
     static let codexClientID = "app_EMoamEEZ73f0CkXaXp7hrann"
+
+    // Pages de statut (surveillance de panne)
+    static let claudeStatus = URL(string: "https://status.claude.com/api/v2/summary.json")!
+    static let codexStatus = URL(string: "https://status.openai.com/api/v2/summary.json")!
 }
 
 enum ISO8601 {

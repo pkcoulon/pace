@@ -78,6 +78,9 @@ swift build -c release
   réarmée à chaque reset.
 - **Démarrage instantané** : le dernier usage connu est mis en cache sur disque
   (pourcentages et dates, jamais de token) et affiché avant le premier appel.
+- **Surveillance de panne** : les pages de statut d'Anthropic et d'OpenAI sont
+  interrogées toutes les 5 min ; en cas de perturbation ou de panne d'un
+  composant Claude ou Codex, un bandeau coloré apparaît sur la carte concernée.
 
 ## Comment les comptes sont lus
 
@@ -115,6 +118,8 @@ aucun analytics. En fonctionnement normal :
 | `chatgpt.com` | usage Codex |
 | `auth.openai.com` | seulement quand le token Codex a plus de 8 jours |
 | `claude.ai` | seulement en mode secours session key |
+| `status.claude.com` | surveillance de panne Claude (toutes les 5 min) |
+| `status.openai.com` | surveillance de panne Codex (toutes les 5 min) |
 
 Pour le confirmer toi-même, lance l'app puis observe son trafic, par exemple :
 

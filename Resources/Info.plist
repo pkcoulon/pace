@@ -4,15 +4,17 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>fr</string>
+	<key>CFBundleDisplayName</key>
+	<string>Pace</string>
 	<key>CFBundleExecutable</key>
+	<string>Pace</string>
+	<key>CFBundleIconFile</key>
 	<string>Pace</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.pierrickcoulon.Pace</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Pace</string>
-	<key>CFBundleDisplayName</key>
 	<string>Pace</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
