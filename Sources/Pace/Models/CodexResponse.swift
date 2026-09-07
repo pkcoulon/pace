@@ -93,7 +93,11 @@ struct CodexUsageResponse: Decodable {
         }
         func window(_ w: Window?) -> UsageWindow? {
             guard let w else { return nil }
-            return UsageWindow(utilization: w.usedPercent, resetsAt: w.resetDate())
+            return UsageWindow(
+                utilization: w.usedPercent,
+                resetsAt: w.resetDate(),
+                windowSeconds: w.limitWindowSeconds.map(TimeInterval.init)
+            )
         }
         let five = window(windows.first(where: isFiveHour))
         let weekly = window(windows.first(where: { !isFiveHour($0) }))

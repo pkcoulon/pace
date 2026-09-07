@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Exporte le rendu réel de l'app en PNG (`UsageBar --snapshot <dossier>`).
+/// Exporte le rendu réel de l'app en PNG (`Pace --snapshot <dossier>`).
 /// Sert à produire des captures sans passer par la barre de menu.
 @MainActor
 enum SnapshotExporter {

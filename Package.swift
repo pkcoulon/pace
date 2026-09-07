@@ -2,12 +2,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "UsageBar",
+    name: "Pace",
     platforms: [.macOS(.v14)],
     targets: [
         .executableTarget(
-            name: "UsageBar",
-            path: "Sources/UsageBar",
+            name: "Pace",
+            path: "Sources/Pace",
             swiftSettings: [.swiftLanguageMode(.v6)]
         )
     ]

@@ -36,6 +36,14 @@ final class UsageStore: ObservableObject {
             .dropFirst()
             .sink { [weak self] _ in Task { await self?.refresh(force: true) } }
             .store(in: &cancellables)
+
+        // Affiche immédiatement le dernier usage connu, avant le premier appel.
+        if let snapshot = UsageCache.load() {
+            for (kind, usage) in snapshot.usages {
+                states[kind] = .loaded(usage)
+            }
+            lastRefresh = snapshot.lastRefresh
+        }
     }
 
     func start() {
@@ -77,6 +85,15 @@ final class UsageStore: ObservableObject {
             }
         }
         lastRefresh = Date()
+        persistCache()
+    }
+
+    private func persistCache() {
+        var usages: [ProviderKind: ProviderUsage] = [:]
+        for (kind, state) in states {
+            if let usage = state.usage { usages[kind] = usage }
+        }
+        UsageCache.save(UsageCache.Snapshot(usages: usages, lastRefresh: lastRefresh))
     }
 
     private nonisolated static func fetch(_ provider: any UsageProvider) async -> Result<ProviderUsage, ProviderError> {
@@ -95,15 +112,20 @@ final class UsageStore: ObservableObject {
             states[kind] = .loaded(usage)
             retryAt[kind] = nil
             consecutiveRateLimits[kind] = 0
-            notifications.evaluate(kind: kind, usage: usage, thresholds: settings.notificationThresholds)
+            notifications.evaluate(
+                kind: kind,
+                usage: usage,
+                fiveHourThresholds: settings.fiveHourThresholds,
+                weeklyThresholds: settings.weeklyThresholds
+            )
         case .failure(let error):
             states[kind] = .failed(error, last: states[kind]?.usage)
             if case .rateLimited(let retryAfter) = error {
                 let attempt = (consecutiveRateLimits[kind] ?? 0) + 1
                 consecutiveRateLimits[kind] = attempt
-                let base = Double(settings.refreshMinutes * 60)
-                let delay = retryAfter ?? min(base * pow(2, Double(attempt)), 30 * 60)
-                retryAt[kind] = Date().addingTimeInterval(delay)
+                retryAt[kind] = Date().addingTimeInterval(
+                    RateLimitBackoff.delay(attempt: attempt, serverRetryAfter: retryAfter)
+                )
             }
         }
     }

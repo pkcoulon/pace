@@ -12,7 +12,7 @@ struct ClaudeOAuthCredential: Sendable {
 /// → `~/.claude/.credentials.json`. Aucun token n'est loggé.
 enum ClaudeTokenReader {
     static let service = "Claude Code-credentials"
-    private static let logger = Logger(subsystem: "com.pierrickcoulon.UsageBar", category: "claude-token")
+    private static let logger = Logger(subsystem: "com.pierrickcoulon.Pace", category: "claude-token")
 
     /// Ordre choisi pour ne JAMAIS déclencher de dialogue d'accès au Trousseau :
     /// l'ACL de l'entrée `Claude Code-credentials` n'autorise que `/usr/bin/security`

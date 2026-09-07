@@ -17,35 +17,45 @@ struct SettingsView: View {
                 Toggle("Claude", isOn: $settings.claudeEnabled)
                 Toggle("Codex", isOn: $settings.codexEnabled)
             }
+
             Section("Barre de menu") {
-                Picker("Chiffres affichés", selection: $settings.menuBarMode) {
-                    ForEach(MenuBarMode.allCases) { mode in
-                        Text(mode.label).tag(mode)
+                if settings.claudeEnabled {
+                    Picker("Claude affiche", selection: $settings.claudeBar) {
+                        ForEach(BarWindow.allCases) { Text($0.label).tag($0) }
                     }
                 }
-                .pickerStyle(.radioGroup)
+                if settings.codexEnabled {
+                    Picker("Codex affiche", selection: $settings.codexBar) {
+                        ForEach(BarWindow.allCases) { Text($0.label).tag($0) }
+                    }
+                }
+                Toggle("Afficher le rythme dans le popover", isOn: $settings.showPacing)
             }
+
             Section("Rafraîchissement") {
                 Picker("Intervalle", selection: $settings.refreshMinutes) {
-                    ForEach(SettingsStore.refreshChoices, id: \.self) { minutes in
-                        Text("\(minutes) min").tag(minutes)
-                    }
+                    ForEach(SettingsStore.refreshChoices, id: \.self) { Text("\($0) min").tag($0) }
                 }
                 .pickerStyle(.segmented)
             }
+
             Section("Notifications") {
-                Stepper("Alerte à \(settings.warningThreshold)\u{202F}%", value: $settings.warningThreshold, in: 50...99, step: 5)
-                Stepper("Alerte critique à \(settings.criticalThreshold)\u{202F}%", value: $settings.criticalThreshold, in: 50...100, step: 5)
+                LabeledContent("Fenêtre 5 h") {
+                    ThresholdPair(warning: $settings.fiveHourWarning, critical: $settings.fiveHourCritical)
+                }
+                LabeledContent("Fenêtre hebdo") {
+                    ThresholdPair(warning: $settings.weeklyWarning, critical: $settings.weeklyCritical)
+                }
             }
+
             Section("Général") {
                 Toggle("Lancer au démarrage", isOn: $settings.launchAtLogin)
                     .disabled(!LaunchAtLogin.isAvailable)
                 if let error = settings.launchAtLoginError {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundStyle(.red)
+                    Text(error).font(.caption).foregroundStyle(.red)
                 }
             }
+
             Section {
                 SecureField("sk-ant-sid…", text: $sessionKey)
                 HStack {
@@ -78,7 +88,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 420)
+        .frame(width: 440)
         .fixedSize(horizontal: false, vertical: true)
     }
 
@@ -95,6 +105,20 @@ struct SettingsView: View {
                 case .failure(let error): testResult = .failure(error.message)
                 }
             }
+        }
+    }
+}
+
+private struct ThresholdPair: View {
+    @Binding var warning: Int
+    @Binding var critical: Int
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Stepper("Alerte \(warning)\u{202F}%", value: $warning, in: 50...99, step: 5)
+                .fixedSize()
+            Stepper("Critique \(critical)\u{202F}%", value: $critical, in: 50...100, step: 5)
+                .fixedSize()
         }
     }
 }

@@ -132,8 +132,8 @@ actor ClaudeUsageProvider: UsageProvider {
             throw ProviderError.notConfigured(hint: "Aucune donnée d'usage pour ce compte")
         }
         return ProviderUsage(
-            fiveHour: decoded.fiveHour.map { UsageWindow(utilization: $0.utilization, resetsAt: $0.resetsAtDate) },
-            weekly: decoded.sevenDay.map { UsageWindow(utilization: $0.utilization, resetsAt: $0.resetsAtDate) },
+            fiveHour: decoded.fiveHour.map { UsageWindow(utilization: $0.utilization, resetsAt: $0.resetsAtDate, windowSeconds: 5 * 3600) },
+            weekly: decoded.sevenDay.map { UsageWindow(utilization: $0.utilization, resetsAt: $0.resetsAtDate, windowSeconds: 7 * 86400) },
             models: decoded.modelUsages(),
             extra: decoded.extra(),
             plan: PlanName.display(plan),

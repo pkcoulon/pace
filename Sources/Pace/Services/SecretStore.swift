@@ -5,7 +5,7 @@ import Security
 /// Service = bundle id. Aucun secret n'est écrit sur disque ni loggé.
 enum SecretStore {
     private static var service: String {
-        Bundle.main.bundleIdentifier ?? "com.pierrickcoulon.UsageBar"
+        Bundle.main.bundleIdentifier ?? "com.pierrickcoulon.Pace"
     }
 
     static func get(_ account: String) -> String? {

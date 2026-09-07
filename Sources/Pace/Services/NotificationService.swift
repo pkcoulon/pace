@@ -15,9 +15,9 @@ final class NotificationService {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
     }
 
-    func evaluate(kind: ProviderKind, usage: ProviderUsage, thresholds: [Int]) {
-        check(kind: kind, windowName: "5 h", window: usage.fiveHour, thresholds: thresholds)
-        check(kind: kind, windowName: "hebdo", window: usage.weekly, thresholds: thresholds)
+    func evaluate(kind: ProviderKind, usage: ProviderUsage, fiveHourThresholds: [Int], weeklyThresholds: [Int]) {
+        check(kind: kind, windowName: "5 h", window: usage.fiveHour, thresholds: fiveHourThresholds)
+        check(kind: kind, windowName: "hebdo", window: usage.weekly, thresholds: weeklyThresholds)
     }
 
     private func check(kind: ProviderKind, windowName: String, window: UsageWindow?, thresholds: [Int]) {

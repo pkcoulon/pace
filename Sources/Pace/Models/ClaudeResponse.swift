@@ -86,17 +86,18 @@ struct ClaudeUsageResponse: Decodable {
                   let name = entry.scope?.model?.displayName else { return nil }
             return ModelUsage(name: name, window: UsageWindow(
                 utilization: entry.percent ?? 0,
-                resetsAt: ISO8601.date(from: entry.resetsAt)
+                resetsAt: ISO8601.date(from: entry.resetsAt),
+                windowSeconds: 7 * 86400
             ))
         }
         if !scoped.isEmpty { return scoped }
 
         var legacy: [ModelUsage] = []
         if let opus = sevenDayOpus {
-            legacy.append(ModelUsage(name: "Opus", window: UsageWindow(utilization: opus.utilization, resetsAt: opus.resetsAtDate)))
+            legacy.append(ModelUsage(name: "Opus", window: UsageWindow(utilization: opus.utilization, resetsAt: opus.resetsAtDate, windowSeconds: 7 * 86400)))
         }
         if let sonnet = sevenDaySonnet {
-            legacy.append(ModelUsage(name: "Sonnet", window: UsageWindow(utilization: sonnet.utilization, resetsAt: sonnet.resetsAtDate)))
+            legacy.append(ModelUsage(name: "Sonnet", window: UsageWindow(utilization: sonnet.utilization, resetsAt: sonnet.resetsAtDate, windowSeconds: 7 * 86400)))
         }
         return legacy
     }

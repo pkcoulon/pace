@@ -7,11 +7,11 @@ app:
 	Scripts/make-app.sh release
 
 run: app
-	pkill -x UsageBar || true
-	open build/UsageBar.app
+	pkill -x Pace || true
+	open build/Pace.app
 
 stop:
-	pkill -x UsageBar || true
+	pkill -x Pace || true
 
 clean:
 	rm -rf .build build

@@ -19,14 +19,28 @@ enum MenuBarComposer {
             let state = states[kind] ?? .idle
             let grayed = state.error?.isAuthFailure ?? false
             let usage = state.usage
-            // Certains plans Codex n'ont pas de fenêtre 5 h : on affiche alors l'hebdo
-            // comme valeur principale, jamais un tiret suivi d'un pourcentage.
-            let primary = usage?.fiveHour ?? usage?.weekly
-            let secondary: UsageWindow? = usage?.fiveHour != nil ? usage?.weekly : nil
+            let five = usage?.fiveHour
+            let weekly = usage?.weekly
+
+            // Choix par provider. Quand la fenêtre demandée manque (ex. Codex sans
+            // 5 h), on retombe sur l'autre plutôt que d'afficher un tiret.
+            let primary: UsageWindow?
+            let secondary: UsageWindow?
+            switch settings.bar(for: kind) {
+            case .fiveHour:
+                primary = five ?? weekly
+                secondary = nil
+            case .weekly:
+                primary = weekly ?? five
+                secondary = nil
+            case .both:
+                primary = five ?? weekly
+                secondary = five != nil ? weekly : nil
+            }
             return MenuBarItem(
                 glyph: kind.glyph,
                 fiveHour: value(primary, grayed: grayed),
-                weekly: settings.menuBarMode == .fiveHourAndWeekly ? secondary.map { value($0, grayed: grayed) } : nil
+                weekly: secondary.map { value($0, grayed: grayed) }
             )
         }
     }

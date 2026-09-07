@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 @main
-struct UsageBarApp: App {
+struct PaceApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var settings: SettingsStore
     @StateObject private var store: UsageStore

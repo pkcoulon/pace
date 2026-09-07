@@ -34,7 +34,7 @@ struct CodexCredentials: Sendable {
 actor CodexAuth {
     private let session: URLSession
     private var inflightRefresh: Task<CodexCredentials, Error>?
-    private let logger = Logger(subsystem: "com.pierrickcoulon.UsageBar", category: "codex-auth")
+    private let logger = Logger(subsystem: "com.pierrickcoulon.Pace", category: "codex-auth")
 
     init(session: URLSession = .shared) {
         self.session = session
