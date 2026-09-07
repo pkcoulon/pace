@@ -72,15 +72,8 @@ dans les réglages (mode secours).
 1. Télécharge le `.dmg` depuis la [page des releases](https://github.com/pkcoulon/pace/releases).
 2. Ouvre-le et glisse **Pace** dans Applications.
 
-L'app n'est pas notarisée par Apple (voir plus bas). Au premier lancement,
-macOS peut afficher « impossible de vérifier le développeur ». Deux façons de
-lever l'avertissement :
-
-- Réglages Système → Confidentialité et sécurité → **« Ouvrir quand même »**.
-- Ou en une commande :
-  ```sh
-  xattr -dr com.apple.quarantine /Applications/Pace.app
-  ```
+L'app est signée Developer ID et notarisée par Apple : elle s'ouvre
+directement, sans avertissement Gatekeeper.
 
 ### Depuis les sources
 
