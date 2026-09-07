@@ -19,6 +19,10 @@ printf 'APPL????' > "$APP/Contents/PkgInfo"
 # sinon signature ad hoc. Une identité stable évite que macOS redemande les
 # autorisations (Trousseau, notifications) à chaque rebuild.
 SIGN_IDENTITY="${SIGN_IDENTITY:--}"
-codesign --force --sign "$SIGN_IDENTITY" "$APP"
+if [ "$SIGN_IDENTITY" = "-" ]; then
+  codesign --force --sign - "$APP"
+else
+  codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP"
+fi
 
 echo "→ $APP (signé: $SIGN_IDENTITY)"
