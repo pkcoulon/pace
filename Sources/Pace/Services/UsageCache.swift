@@ -5,16 +5,11 @@ import Foundation
 /// token ici : uniquement des pourcentages et des dates.
 enum UsageCache {
     struct Snapshot: Codable {
-        var usages: [ProviderKind: ProviderUsage]
-        var lastRefresh: Date?
+        var usages: [ProviderID: ProviderUsage]
     }
 
     private static var fileURL: URL {
-        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
-            ?? FileManager.default.temporaryDirectory
-        let dir = base.appendingPathComponent("Pace", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir.appendingPathComponent("usage-cache.json")
+        AppSupport.directory.appendingPathComponent("usage-cache.json")
     }
 
     static func load() -> Snapshot? {
@@ -25,5 +20,14 @@ enum UsageCache {
     static func save(_ snapshot: Snapshot) {
         guard let data = try? JSONEncoder().encode(snapshot) else { return }
         try? data.write(to: fileURL, options: .atomic)
+    }
+}
+
+enum AppSupport {
+    static var directory: URL {
+        let base = ProviderFactory.isMock ? nil : FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+        let dir = (base ?? FileManager.default.temporaryDirectory).appendingPathComponent("Pace", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
     }
 }

@@ -2,34 +2,36 @@ import Foundation
 
 enum UsageFormat {
     static func percent(_ value: Double) -> String {
-        "\(Int(value.rounded()))\u{202F}%"
-    }
-
-    static func barPercent(_ value: Double) -> String {
-        "\(Int(value.rounded()))%"
+        (value.rounded() / 100).formatted(.percent.precision(.fractionLength(0)))
     }
 
     static func duration(_ seconds: TimeInterval) -> String {
-        let minutes = Int((max(0, seconds) / 60).rounded(.up))
+        let minutes = Int((min(max(0, seconds), 366 * 86_400) / 60).rounded(.up))
         let hours = minutes / 60
         let rest = minutes % 60
-        if hours > 0 {
-            return rest > 0 ? "\(hours) h \(String(format: "%02d", rest))" : "\(hours) h"
+        if hours >= 24 {
+            let days = hours / 24
+            let restHours = hours % 24
+            return restHours > 0 ? String(localized: "\(days)d \(restHours)h") : String(localized: "\(days)d")
         }
-        return "\(max(minutes, 1)) min"
+        if hours > 0 {
+            return rest > 0 ? String(localized: "\(hours)h \(String(format: "%02d", rest))") : String(localized: "\(hours)h")
+        }
+        return String(localized: "\(max(minutes, 1)) min")
     }
 
     static func countdown(to date: Date, from now: Date) -> String {
-        "réinit. dans \(duration(date.timeIntervalSince(now)))"
+        let remaining = date.timeIntervalSince(now)
+        return remaining > 0 ? String(localized: "resets in \(duration(remaining))") : String(localized: "reset")
     }
 
     static func resetDate(_ date: Date) -> String {
-        "réinit. " + date.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated).hour().minute())
+        String(localized: "resets \(date.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated).hour().minute()))")
     }
 
     static func relative(_ date: Date, now: Date) -> String {
         let seconds = now.timeIntervalSince(date)
-        if seconds < 60 { return "à l'instant" }
-        return "il y a \(duration(seconds))"
+        if seconds < 60 { return String(localized: "just now") }
+        return String(localized: "\(duration(seconds)) ago")
     }
 }

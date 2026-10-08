@@ -1,78 +1,38 @@
-import AppKit
 import SwiftUI
 
 struct PopoverView: View {
     @EnvironmentObject private var store: UsageStore
     @EnvironmentObject private var settings: SettingsStore
-    @Environment(\.openSettings) private var openSettings
+
+    private var providers: [ProviderDescriptor] {
+        settings.enabledProviders.compactMap(ProviderRegistry.descriptor(for:))
+    }
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 30)) { context in
-            VStack(spacing: 10) {
-                toolbar(now: context.date)
-
-                if settings.enabledProviders.isEmpty {
-                    Text("Aucun provider activé")
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 20)
-                }
-                ForEach(settings.enabledProviders) { kind in
-                    ProviderCard(
-                        kind: kind,
-                        state: store.states[kind] ?? .idle,
-                        now: context.date,
-                        showPacing: settings.showPacing,
-                        status: store.statuses[kind] ?? .unknown
-                    )
+            VStack(alignment: .leading, spacing: Theme.Spacing.m) {
+                PopoverHeader(now: context.date)
+                    .padding(.leading, Theme.Spacing.xs)
+                CappedScrollView(maxHeight: Theme.Size.popoverContentMaxHeight) {
+                    VStack(spacing: Theme.Spacing.m) {
+                        if let update = store.availableUpdate {
+                            UpdateBanner(update: update)
+                        }
+                        if providers.isEmpty {
+                            EmptyStateView()
+                        }
+                        ForEach(providers) { provider in
+                            ProviderCard(provider: provider, now: context.date)
+                        }
+                    }
                 }
             }
-            .padding(12)
+            .padding(Theme.Inset.popover)
         }
-        .frame(width: 320)
+        .frame(width: Theme.Size.popoverWidth)
         .background(.ultraThinMaterial)
-    }
-
-    private func toolbar(now: Date) -> some View {
-        HStack(spacing: 8) {
-            Group {
-                if store.isRefreshing {
-                    Text("Mise à jour…")
-                } else if let lastRefresh = store.lastRefresh {
-                    Text("Mis à jour \(UsageFormat.relative(lastRefresh, now: now))")
-                } else {
-                    Text("Pas encore de données")
-                }
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-
-            Spacer()
-
-            Button {
-                Task { await store.refresh(force: true) }
-            } label: {
-                Image(systemName: "arrow.clockwise")
-            }
-            .help("Rafraîchir")
-            .disabled(store.isRefreshing)
-
-            Button {
-                openSettings()
-                NSApp.activate()
-            } label: {
-                Image(systemName: "gearshape")
-            }
-            .help("Réglages")
-
-            Button {
-                NSApp.terminate(nil)
-            } label: {
-                Image(systemName: "power")
-            }
-            .help("Quitter")
+        .onAppear {
+            Task { await store.refreshIfStale() }
         }
-        .buttonStyle(.borderless)
-        .padding(.horizontal, 2)
     }
 }

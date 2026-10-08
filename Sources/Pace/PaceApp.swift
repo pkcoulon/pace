@@ -36,6 +36,7 @@ struct PaceApp: App {
         Settings {
             SettingsView()
                 .environmentObject(settings)
+                .environmentObject(store)
         }
     }
 }

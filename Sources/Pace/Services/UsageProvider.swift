@@ -1,6 +1,6 @@
 import Foundation
 
 protocol UsageProvider: Sendable {
-    var kind: ProviderKind { get }
+    var id: ProviderID { get }
     func fetchUsage() async throws -> ProviderUsage
 }

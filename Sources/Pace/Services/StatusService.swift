@@ -28,10 +28,10 @@ enum StatusLevel: Sendable, Equatable {
 
     var label: String {
         switch self {
-        case .operational: "Opérationnel"
-        case .degraded: "Perturbations"
-        case .outage: "Panne"
-        case .unknown: "Statut inconnu"
+        case .operational: String(localized: "Operational")
+        case .degraded: String(localized: "Degraded")
+        case .outage: String(localized: "Outage")
+        case .unknown: String(localized: "Unknown status")
         }
     }
 }
@@ -58,17 +58,8 @@ struct StatusService: Sendable {
         let components: [Component]?
     }
 
-    /// Mots-clés des composants pertinents par provider (insensible à la casse).
-    private static func matchers(for kind: ProviderKind) -> [String] {
-        switch kind {
-        case .claude: ["claude", "anthropic"]
-        case .codex: ["chatgpt", "codex"]
-        }
-    }
-
-    func fetch(_ kind: ProviderKind) async -> ProviderStatus {
-        let url = kind == .claude ? Endpoints.claudeStatus : Endpoints.codexStatus
-        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
+    func fetch(_ page: StatusPage) async -> ProviderStatus {
+        var request = URLRequest(url: page.summaryURL, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
         request.httpMethod = "GET"
 
         guard let (data, response) = try? await session.data(for: request),
@@ -78,7 +69,7 @@ struct StatusService: Sendable {
             return .unknown
         }
 
-        let matchers = Self.matchers(for: kind)
+        let matchers = page.componentMatchers.map { $0.lowercased() }
         var worst: StatusLevel = .operational
         var worstName: String?
         for component in components {

@@ -16,9 +16,26 @@ enum Endpoints {
     static let codexTokenRefresh = URL(string: "https://auth.openai.com/oauth/token")!
     static let codexClientID = "app_EMoamEEZ73f0CkXaXp7hrann"
 
+    static let copilotUsage = URL(string: "https://api.github.com/copilot_internal/user")!
+
+    static let cursorUsage = URL(string: "https://api2.cursor.sh/aiserver.v1.DashboardService/GetCurrentPeriodUsage")!
+    static let cursorPlanInfo = URL(string: "https://api2.cursor.sh/aiserver.v1.DashboardService/GetPlanInfo")!
+
+    static let zaiGlobal = URL(string: "https://api.z.ai")!
+    static func zaiQuota(origin: URL) -> URL {
+        origin.appendingPathComponent("api/monitor/usage/quota/limit")
+    }
+
+    static let openRouterKey = URL(string: "https://openrouter.ai/api/v1/key")!
+    static let openRouterCredits = URL(string: "https://openrouter.ai/api/v1/credits")!
+
     // Pages de statut (surveillance de panne)
     static let claudeStatus = URL(string: "https://status.claude.com/api/v2/summary.json")!
     static let codexStatus = URL(string: "https://status.openai.com/api/v2/summary.json")!
+    static let copilotStatus = URL(string: "https://www.githubstatus.com/api/v2/summary.json")!
+    static let cursorStatus = URL(string: "https://status.cursor.com/api/v2/summary.json")!
+
+    static let latestRelease = URL(string: "https://api.github.com/repos/pkcoulon/pace/releases/latest")!
 }
 
 enum ISO8601 {

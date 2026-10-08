@@ -6,7 +6,7 @@ final class DirectoryWatcher: @unchecked Sendable {
     private let fileDescriptor: Int32
     private let source: DispatchSourceFileSystemObject
     private let debounce: TimeInterval
-    private let queue = DispatchQueue(label: "usagebar.watcher")
+    private let queue = DispatchQueue(label: "com.pierrickcoulon.Pace.watcher")
     private var lastEmit = Date.distantPast
 
     init?(path: String, debounce: TimeInterval = 2.0, onChange: @escaping @Sendable () -> Void) {

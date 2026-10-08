@@ -1,31 +1,24 @@
 import Foundation
 
-enum ProviderKind: String, CaseIterable, Codable, Sendable, Identifiable {
-    case claude
-    case codex
+struct ProviderID: RawRepresentable, Hashable, Sendable, Codable, Identifiable, CodingKeyRepresentable {
+    let rawValue: String
+
+    init(rawValue: String) {
+        self.rawValue = rawValue
+    }
 
     var id: String { rawValue }
 
-    var displayName: String {
-        switch self {
-        case .claude: "Claude"
-        case .codex: "Codex"
-        }
-    }
+    static let claude = ProviderID(rawValue: "claude")
+    static let codex = ProviderID(rawValue: "codex")
+}
 
-    var glyph: String {
-        switch self {
-        case .claude: "C"
-        case .codex: "X"
-        }
-    }
+enum WindowSlot: String, Codable, CaseIterable, Sendable, CodingKeyRepresentable {
+    case short
+    case long
 
-    /// Page d'usage officielle, ouverte au clic sur la carte.
-    var usagePageURL: URL {
-        switch self {
-        case .claude: URL(string: "https://claude.ai/settings/usage")!
-        case .codex: URL(string: "https://chatgpt.com/#settings/Usage")!
-        }
+    init(windowSeconds: TimeInterval) {
+        self = windowSeconds <= 86400 ? .short : .long
     }
 }
 
@@ -35,6 +28,35 @@ struct UsageWindow: Sendable, Equatable, Codable {
     /// Durée totale de la fenêtre en secondes (18000 = 5 h, 604800 = 7 j).
     /// Sert au calcul de rythme.
     var windowSeconds: TimeInterval?
+
+    var label: String {
+        guard let seconds = windowSeconds, seconds > 0 else { return String(localized: "Window") }
+        switch Int((seconds / 3600).rounded()) {
+        case 24: return String(localized: "Day")
+        case 168: return String(localized: "Week")
+        case 672...744: return String(localized: "Month")
+        default: return UsageFormat.duration(seconds)
+        }
+    }
+
+    func isExpired(at now: Date) -> Bool {
+        resetsAt.map { $0 <= now } ?? false
+    }
+
+    func effective(at now: Date) -> UsageWindow {
+        guard let resetsAt, resetsAt <= now else { return self }
+        var next: Date?
+        if let seconds = windowSeconds, seconds > 0, WindowSlot(windowSeconds: seconds) == .long {
+            let cycles = (now.timeIntervalSince(resetsAt) / seconds).rounded(.down) + 1
+            next = resetsAt.addingTimeInterval(cycles * seconds)
+        }
+        return UsageWindow(utilization: 0, resetsAt: next, windowSeconds: windowSeconds)
+    }
+
+    static func sameCycle(_ a: Date?, _ b: Date?) -> Bool {
+        guard let a, let b else { return a == b }
+        return abs(a.timeIntervalSince(b)) <= 15 * 60
+    }
 }
 
 struct ModelUsage: Sendable, Equatable, Identifiable, Codable {
@@ -51,12 +73,28 @@ struct ExtraUsage: Sendable, Equatable, Codable {
 }
 
 struct ProviderUsage: Sendable, Equatable, Codable {
-    var fiveHour: UsageWindow?
-    var weekly: UsageWindow?
+    var shortWindow: UsageWindow?
+    var longWindow: UsageWindow?
     var models: [ModelUsage] = []
     var extra: ExtraUsage?
     var plan: String?
+    var source: String?
     var fetchedAt: Date
+
+    func window(_ slot: WindowSlot) -> UsageWindow? {
+        switch slot {
+        case .short: shortWindow
+        case .long: longWindow
+        }
+    }
+
+    func effective(at now: Date) -> ProviderUsage {
+        var usage = self
+        usage.shortWindow = shortWindow?.effective(at: now)
+        usage.longWindow = longWindow?.effective(at: now)
+        usage.models = models.map { ModelUsage(name: $0.name, window: $0.window.effective(at: now)) }
+        return usage
+    }
 }
 
 enum ProviderError: Error, Sendable, Equatable {
@@ -72,14 +110,14 @@ enum ProviderError: Error, Sendable, Equatable {
             hint
         case .rateLimited(let retryAfter):
             if let retryAfter {
-                "Trop de requêtes, nouvel essai dans \(UsageFormat.duration(retryAfter))"
+                String(localized: "Too many requests, retrying in \(UsageFormat.duration(retryAfter))")
             } else {
-                "Trop de requêtes, nouvel essai plus tard"
+                String(localized: "Too many requests, retrying later")
             }
         case .network(let detail):
-            "Réseau : \(detail)"
+            String(localized: "Network: \(detail)")
         case .decoding(let detail):
-            "Réponse inattendue : \(detail)"
+            String(localized: "Unexpected response: \(detail)")
         }
     }
 

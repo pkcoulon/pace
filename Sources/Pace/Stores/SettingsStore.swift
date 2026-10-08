@@ -3,17 +3,33 @@ import Combine
 
 /// Ce qu'un provider affiche dans la barre de menu.
 enum BarWindow: String, CaseIterable, Identifiable, Sendable {
-    case fiveHour
-    case weekly
+    case short = "fiveHour"
+    case long = "weekly"
     case both
 
     var id: String { rawValue }
 
     var label: String {
         switch self {
-        case .fiveHour: "5 h"
-        case .weekly: "Hebdo"
-        case .both: "5 h + hebdo"
+        case .short: String(localized: "Short window")
+        case .long: String(localized: "Long window")
+        case .both: String(localized: "Both")
+        }
+    }
+}
+
+enum MenuBarStyle: String, CaseIterable, Identifiable, Sendable {
+    case text
+    case rings
+    case compact
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .text: String(localized: "Text")
+        case .rings: String(localized: "Rings")
+        case .compact: String(localized: "Compact")
         }
     }
 }
@@ -21,50 +37,69 @@ enum BarWindow: String, CaseIterable, Identifiable, Sendable {
 @MainActor
 final class SettingsStore: ObservableObject {
     private enum Key {
-        static let claudeEnabled = "claudeEnabled"
-        static let codexEnabled = "codexEnabled"
+        static let enabledProviders = "enabledProviders"
+        static let legacyEnabled: [(String, ProviderID)] = [("claudeEnabled", .claude), ("codexEnabled", .codex)]
         static let refreshMinutes = "refreshMinutes"
         static let showPacing = "showPacing"
-        static func bar(_ kind: ProviderKind) -> String { "bar.\(kind.rawValue)" }
-        static let fiveHourWarning = "notif.5h.warning"
-        static let fiveHourCritical = "notif.5h.critical"
-        static let weeklyWarning = "notif.weekly.warning"
-        static let weeklyCritical = "notif.weekly.critical"
+        static func bar(_ id: ProviderID) -> String { "bar.\(id.rawValue)" }
+        static let shortWarning = "notif.5h.warning"
+        static let shortCritical = "notif.5h.critical"
+        static let longWarning = "notif.weekly.warning"
+        static let longCritical = "notif.weekly.critical"
+        static let menuBarStyle = "menuBarStyle"
+        static let highlightOnlyAlerts = "highlightOnlyAlerts"
+        static let showCountdownInMenuBar = "showCountdownInMenuBar"
+        static let notifyOnReset = "notifyOnReset"
+        static let notifyOnPace = "notifyOnPace"
+        static let checkForUpdates = "checkForUpdates"
+        static let exportJSON = "exportJSON"
     }
 
     static let refreshChoices = [1, 3, 5]
 
     private let defaults: UserDefaults
+    private var enabledOverrides: [String: Bool]
 
-    @Published var claudeEnabled: Bool {
-        didSet { defaults.set(claudeEnabled, forKey: Key.claudeEnabled) }
-    }
-    @Published var codexEnabled: Bool {
-        didSet { defaults.set(codexEnabled, forKey: Key.codexEnabled) }
-    }
+    @Published private(set) var enabledProviders: [ProviderID]
+    @Published private var bars: [ProviderID: BarWindow]
     @Published var refreshMinutes: Int {
         didSet { defaults.set(refreshMinutes, forKey: Key.refreshMinutes) }
     }
     @Published var showPacing: Bool {
         didSet { defaults.set(showPacing, forKey: Key.showPacing) }
     }
-    @Published var claudeBar: BarWindow {
-        didSet { defaults.set(claudeBar.rawValue, forKey: Key.bar(.claude)) }
+    @Published var shortWarning: Int {
+        didSet { defaults.set(shortWarning, forKey: Key.shortWarning) }
     }
-    @Published var codexBar: BarWindow {
-        didSet { defaults.set(codexBar.rawValue, forKey: Key.bar(.codex)) }
+    @Published var shortCritical: Int {
+        didSet { defaults.set(shortCritical, forKey: Key.shortCritical) }
     }
-    @Published var fiveHourWarning: Int {
-        didSet { defaults.set(fiveHourWarning, forKey: Key.fiveHourWarning) }
+    @Published var longWarning: Int {
+        didSet { defaults.set(longWarning, forKey: Key.longWarning) }
     }
-    @Published var fiveHourCritical: Int {
-        didSet { defaults.set(fiveHourCritical, forKey: Key.fiveHourCritical) }
+    @Published var longCritical: Int {
+        didSet { defaults.set(longCritical, forKey: Key.longCritical) }
     }
-    @Published var weeklyWarning: Int {
-        didSet { defaults.set(weeklyWarning, forKey: Key.weeklyWarning) }
+    @Published var menuBarStyle: MenuBarStyle {
+        didSet { defaults.set(menuBarStyle.rawValue, forKey: Key.menuBarStyle) }
     }
-    @Published var weeklyCritical: Int {
-        didSet { defaults.set(weeklyCritical, forKey: Key.weeklyCritical) }
+    @Published var highlightOnlyAlerts: Bool {
+        didSet { defaults.set(highlightOnlyAlerts, forKey: Key.highlightOnlyAlerts) }
+    }
+    @Published var showCountdownInMenuBar: Bool {
+        didSet { defaults.set(showCountdownInMenuBar, forKey: Key.showCountdownInMenuBar) }
+    }
+    @Published var notifyOnReset: Bool {
+        didSet { defaults.set(notifyOnReset, forKey: Key.notifyOnReset) }
+    }
+    @Published var notifyOnPace: Bool {
+        didSet { defaults.set(notifyOnPace, forKey: Key.notifyOnPace) }
+    }
+    @Published var checkForUpdates: Bool {
+        didSet { defaults.set(checkForUpdates, forKey: Key.checkForUpdates) }
+    }
+    @Published var exportJSON: Bool {
+        didSet { defaults.set(exportJSON, forKey: Key.exportJSON) }
     }
     @Published var launchAtLogin: Bool {
         didSet {
@@ -94,27 +129,47 @@ final class SettingsStore: ObservableObject {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         defaults.register(defaults: [
-            Key.claudeEnabled: true,
-            Key.codexEnabled: true,
             Key.refreshMinutes: 3,
             Key.showPacing: true,
-            Key.bar(.claude): BarWindow.both.rawValue,
-            Key.bar(.codex): BarWindow.both.rawValue,
-            Key.fiveHourWarning: 80,
-            Key.fiveHourCritical: 95,
-            Key.weeklyWarning: 80,
-            Key.weeklyCritical: 95,
+            Key.shortWarning: 80,
+            Key.shortCritical: 95,
+            Key.longWarning: 80,
+            Key.longCritical: 95,
+            Key.menuBarStyle: MenuBarStyle.text.rawValue,
+            Key.highlightOnlyAlerts: true,
+            Key.showCountdownInMenuBar: true,
+            Key.notifyOnReset: true,
+            Key.notifyOnPace: true,
+            Key.checkForUpdates: false,
+            Key.exportJSON: true,
         ])
-        claudeEnabled = defaults.bool(forKey: Key.claudeEnabled)
-        codexEnabled = defaults.bool(forKey: Key.codexEnabled)
+
+        var overrides = defaults.dictionary(forKey: Key.enabledProviders) as? [String: Bool] ?? [:]
+        for (legacyKey, id) in Key.legacyEnabled {
+            guard let value = defaults.object(forKey: legacyKey) as? Bool else { continue }
+            if overrides[id.rawValue] == nil { overrides[id.rawValue] = value }
+            defaults.removeObject(forKey: legacyKey)
+            defaults.set(overrides, forKey: Key.enabledProviders)
+        }
+        enabledOverrides = overrides
+        enabledProviders = ProviderRegistry.all.filter { overrides[$0.id.rawValue] ?? $0.isDetected() }.map(\.id)
+        bars = Dictionary(uniqueKeysWithValues: ProviderRegistry.all.map {
+            ($0.id, BarWindow(rawValue: defaults.string(forKey: Key.bar($0.id)) ?? "") ?? .both)
+        })
+
         refreshMinutes = defaults.integer(forKey: Key.refreshMinutes)
         showPacing = defaults.bool(forKey: Key.showPacing)
-        claudeBar = BarWindow(rawValue: defaults.string(forKey: Key.bar(.claude)) ?? "") ?? .both
-        codexBar = BarWindow(rawValue: defaults.string(forKey: Key.bar(.codex)) ?? "") ?? .both
-        fiveHourWarning = defaults.integer(forKey: Key.fiveHourWarning)
-        fiveHourCritical = defaults.integer(forKey: Key.fiveHourCritical)
-        weeklyWarning = defaults.integer(forKey: Key.weeklyWarning)
-        weeklyCritical = defaults.integer(forKey: Key.weeklyCritical)
+        shortWarning = defaults.integer(forKey: Key.shortWarning)
+        shortCritical = defaults.integer(forKey: Key.shortCritical)
+        longWarning = defaults.integer(forKey: Key.longWarning)
+        longCritical = defaults.integer(forKey: Key.longCritical)
+        menuBarStyle = MenuBarStyle(rawValue: defaults.string(forKey: Key.menuBarStyle) ?? "") ?? .text
+        highlightOnlyAlerts = defaults.bool(forKey: Key.highlightOnlyAlerts)
+        showCountdownInMenuBar = defaults.bool(forKey: Key.showCountdownInMenuBar)
+        notifyOnReset = defaults.bool(forKey: Key.notifyOnReset)
+        notifyOnPace = defaults.bool(forKey: Key.notifyOnPace)
+        checkForUpdates = defaults.bool(forKey: Key.checkForUpdates)
+        exportJSON = defaults.bool(forKey: Key.exportJSON)
         launchAtLogin = LaunchAtLogin.isEnabled
     }
 
@@ -122,24 +177,37 @@ final class SettingsStore: ObservableObject {
         .seconds(refreshMinutes * 60)
     }
 
-    func bar(for kind: ProviderKind) -> BarWindow {
-        switch kind {
-        case .claude: claudeBar
-        case .codex: codexBar
+    func isEnabled(_ id: ProviderID) -> Bool {
+        enabledProviders.contains(id)
+    }
+
+    func setEnabled(_ id: ProviderID, _ enabled: Bool) {
+        enabledOverrides[id.rawValue] = enabled
+        defaults.set(enabledOverrides, forKey: Key.enabledProviders)
+        guard isEnabled(id) != enabled else { return }
+        enabledProviders = ProviderRegistry.all.map(\.id).filter { $0 == id ? enabled : isEnabled($0) }
+    }
+
+    func bar(for id: ProviderID) -> BarWindow {
+        bars[id] ?? .both
+    }
+
+    func setBar(_ bar: BarWindow, for id: ProviderID) {
+        bars[id] = bar
+        defaults.set(bar.rawValue, forKey: Key.bar(id))
+    }
+
+    func thresholds(for slot: WindowSlot) -> [Int] {
+        switch slot {
+        case .short: [shortWarning, shortCritical].filter { $0 > 0 }
+        case .long: [longWarning, longCritical].filter { $0 > 0 }
         }
     }
 
-    var fiveHourThresholds: [Int] { [fiveHourWarning, fiveHourCritical].filter { $0 > 0 } }
-    var weeklyThresholds: [Int] { [weeklyWarning, weeklyCritical].filter { $0 > 0 } }
-
-    var enabledProviders: [ProviderKind] {
-        ProviderKind.allCases.filter(isEnabled)
-    }
-
-    func isEnabled(_ kind: ProviderKind) -> Bool {
-        switch kind {
-        case .claude: claudeEnabled
-        case .codex: codexEnabled
+    func critical(for slot: WindowSlot) -> Int {
+        switch slot {
+        case .short: shortCritical
+        case .long: longCritical
         }
     }
 }

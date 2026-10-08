@@ -55,7 +55,7 @@ actor CodexAuth {
         guard FileManager.default.fileExists(atPath: Self.authFileURL.path),
               let data = try? Data(contentsOf: Self.authFileURL),
               let credentials = Self.parse(data) else {
-            throw ProviderError.notConfigured(hint: "Lance `codex login`")
+            throw ProviderError.notConfigured(hint: String(localized: "Run `codex login`"))
         }
         return credentials
     }
@@ -96,7 +96,7 @@ actor CodexAuth {
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         guard status == 200,
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            throw ProviderError.unauthorized(hint: "Session Codex expirée, relance `codex login`")
+            throw ProviderError.unauthorized(hint: String(localized: "Codex session expired, run `codex login` again"))
         }
         return CodexCredentials(
             accessToken: json["access_token"] as? String ?? credentials.accessToken,
@@ -152,14 +152,14 @@ actor CodexAuth {
         json["last_refresh"] = ISO8601.string(from: credentials.lastRefresh ?? Date())
 
         guard let out = try? JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted, .sortedKeys]) else {
-            throw ProviderError.decoding("sérialisation auth.json")
+            throw ProviderError.decoding(String(localized: "auth.json serialization"))
         }
         let staged = url.deletingLastPathComponent()
-            .appendingPathComponent(".auth.json.usagebar-\(UUID().uuidString)")
+            .appendingPathComponent(".auth.json.pace-\(UUID().uuidString)")
         FileManager.default.createFile(atPath: staged.path, contents: out, attributes: [.posixPermissions: 0o600])
         if rename(staged.path, url.path) != 0 {
             try? FileManager.default.removeItem(at: staged)
-            throw ProviderError.decoding("écriture auth.json (errno \(errno))")
+            throw ProviderError.decoding(String(localized: "writing auth.json (errno \(errno))"))
         }
     }
 

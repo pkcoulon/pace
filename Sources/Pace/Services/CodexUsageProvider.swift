@@ -3,7 +3,7 @@ import Foundation
 /// Provider Codex. Lit ~/.codex/auth.json, rafraîchit le token si nécessaire,
 /// appelle /backend-api/wham/usage, et sur un 401 force un refresh puis réessaie.
 actor CodexUsageProvider: UsageProvider {
-    nonisolated let kind: ProviderKind = .codex
+    nonisolated let id: ProviderID = .codex
 
     private let session: URLSession
     private let auth: CodexAuth
@@ -15,7 +15,7 @@ actor CodexUsageProvider: UsageProvider {
 
     func fetchUsage() async throws -> ProviderUsage {
         guard CodexAuth.fileExists() else {
-            throw ProviderError.notConfigured(hint: "Lance `codex login`")
+            throw ProviderError.notConfigured(hint: String(localized: "Run `codex login`"))
         }
         var credentials = try await auth.load()
         credentials = try await auth.refreshIfNeeded(credentials)
@@ -44,13 +44,13 @@ actor CodexUsageProvider: UsageProvider {
             throw ProviderError.network(error.localizedDescription)
         }
         guard let http = response as? HTTPURLResponse else {
-            throw ProviderError.network("réponse invalide")
+            throw ProviderError.network(String(localized: "invalid response"))
         }
         switch http.statusCode {
         case 200:
             return try map(data)
         case 401, 403:
-            throw ProviderError.unauthorized(hint: "Session Codex expirée, relance `codex login`")
+            throw ProviderError.unauthorized(hint: String(localized: "Codex session expired, run `codex login` again"))
         case 429:
             let retry = http.value(forHTTPHeaderField: "Retry-After").flatMap { TimeInterval($0) }
             throw ProviderError.rateLimited(retryAfter: (retry ?? 0) > 0 ? retry : nil)
@@ -66,13 +66,14 @@ actor CodexUsageProvider: UsageProvider {
         } catch {
             throw ProviderError.decoding(error.localizedDescription)
         }
-        let (five, weekly) = decoded.mapped()
+        let (short, long) = decoded.mapped()
         return ProviderUsage(
-            fiveHour: five,
-            weekly: weekly,
+            shortWindow: short,
+            longWindow: long,
             models: [],
             extra: decoded.extra(),
             plan: PlanName.display(decoded.planType),
+            source: "codex login",
             fetchedAt: Date()
         )
     }

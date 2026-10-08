@@ -4,7 +4,7 @@ import Foundation
 /// Mode secours : session key claude.ai (claude.ai/api) quand aucun token OAuth
 /// n'est disponible. Ne rafraîchit jamais le token OAuth lui-même.
 actor ClaudeUsageProvider: UsageProvider {
-    nonisolated let kind: ProviderKind = .claude
+    nonisolated let id: ProviderID = .claude
 
     private let session: URLSession
     private var cachedOrgUUID: String?
@@ -20,7 +20,7 @@ actor ClaudeUsageProvider: UsageProvider {
         if let key = SecretStore.get(SecretAccount.claudeSessionKey) {
             return try await fetchSessionKey(key)
         }
-        throw ProviderError.notConfigured(hint: "Lance `claude` ou ajoute une session key dans les réglages")
+        throw ProviderError.notConfigured(hint: String(localized: "Run `claude` or add a session key in Settings"))
     }
 
     // MARK: - OAuth (Claude Code)
@@ -35,9 +35,9 @@ actor ClaudeUsageProvider: UsageProvider {
         let (data, response) = try await send(request)
         switch response.statusCode {
         case 200:
-            return try map(data, plan: credential.subscriptionType)
+            return try map(data, plan: credential.subscriptionType, source: "Claude Code")
         case 401, 403:
-            throw ProviderError.unauthorized(hint: "Token expiré, relance `claude`")
+            throw ProviderError.unauthorized(hint: String(localized: "Token expired, run `claude` again"))
         case 429:
             throw ProviderError.rateLimited(retryAfter: retryAfter(response))
         default:
@@ -58,11 +58,11 @@ actor ClaudeUsageProvider: UsageProvider {
         switch response.statusCode {
         case 200:
             if let error = try? JSONDecoder().decode(ClaudeErrorResponse.self, from: data), error.isPermissionError {
-                throw ProviderError.unauthorized(hint: "Session key expirée, recolle-la dans les réglages")
+                throw ProviderError.unauthorized(hint: String(localized: "Session key expired, paste it again in Settings"))
             }
-            return try map(data, plan: nil)
+            return try map(data, plan: nil, source: String(localized: "claude.ai session key"))
         case 401, 403:
-            throw ProviderError.unauthorized(hint: "Session key invalide ou expirée")
+            throw ProviderError.unauthorized(hint: String(localized: "Invalid or expired session key"))
         case 429:
             throw ProviderError.rateLimited(retryAfter: retryAfter(response))
         default:
@@ -80,12 +80,12 @@ actor ClaudeUsageProvider: UsageProvider {
         try throwIfCloudflare(data, status: response.statusCode)
         guard response.statusCode == 200 else {
             if response.statusCode == 401 || response.statusCode == 403 {
-                throw ProviderError.unauthorized(hint: "Session key invalide ou expirée")
+                throw ProviderError.unauthorized(hint: String(localized: "Invalid or expired session key"))
             }
             throw ProviderError.network("HTTP \(response.statusCode)")
         }
         guard let orgs = try? JSONDecoder().decode([ClaudeOrganization].self, from: data), let first = orgs.first else {
-            throw ProviderError.decoding("aucune organisation")
+            throw ProviderError.decoding(String(localized: "no organization"))
         }
         cachedOrgUUID = first.uuid
         return first.uuid
@@ -115,13 +115,13 @@ actor ClaudeUsageProvider: UsageProvider {
     private func throwIfCloudflare(_ data: Data, status: Int) throws {
         guard let text = String(data: data, encoding: .utf8) else { return }
         if text.contains("<!DOCTYPE html") || text.contains("<html") {
-            throw ProviderError.network("Cloudflare bloque la requête claude.ai")
+            throw ProviderError.network(String(localized: "Cloudflare is blocking the claude.ai request"))
         }
     }
 
     // MARK: - Commun
 
-    private func map(_ data: Data, plan: String?) throws -> ProviderUsage {
+    private func map(_ data: Data, plan: String?, source: String) throws -> ProviderUsage {
         let decoded: ClaudeUsageResponse
         do {
             decoded = try JSONDecoder().decode(ClaudeUsageResponse.self, from: data)
@@ -129,14 +129,15 @@ actor ClaudeUsageProvider: UsageProvider {
             throw ProviderError.decoding(error.localizedDescription)
         }
         guard !decoded.hasNoWindows else {
-            throw ProviderError.notConfigured(hint: "Aucune donnée d'usage pour ce compte")
+            throw ProviderError.notConfigured(hint: String(localized: "No usage data for this account"))
         }
         return ProviderUsage(
-            fiveHour: decoded.fiveHour.map { UsageWindow(utilization: $0.utilization, resetsAt: $0.resetsAtDate, windowSeconds: 5 * 3600) },
-            weekly: decoded.sevenDay.map { UsageWindow(utilization: $0.utilization, resetsAt: $0.resetsAtDate, windowSeconds: 7 * 86400) },
+            shortWindow: decoded.fiveHour.map { UsageWindow(utilization: $0.utilization, resetsAt: $0.resetsAtDate, windowSeconds: 5 * 3600) },
+            longWindow: decoded.sevenDay.map { UsageWindow(utilization: $0.utilization, resetsAt: $0.resetsAtDate, windowSeconds: 7 * 86400) },
             models: decoded.modelUsages(),
             extra: decoded.extra(),
             plan: PlanName.display(plan),
+            source: source,
             fetchedAt: Date()
         )
     }
@@ -145,7 +146,7 @@ actor ClaudeUsageProvider: UsageProvider {
         do {
             let (data, response) = try await session.data(for: request)
             guard let http = response as? HTTPURLResponse else {
-                throw ProviderError.network("réponse invalide")
+                throw ProviderError.network(String(localized: "invalid response"))
             }
             return (data, http)
         } catch let error as ProviderError {
@@ -167,8 +168,8 @@ actor ClaudeUsageProvider: UsageProvider {
         let provider = ClaudeUsageProvider()
         do {
             let usage = try await provider.fetchSessionKey(key)
-            let five = usage.fiveHour.map { "5 h \(Int($0.utilization))%" } ?? ""
-            return .success("Connecté. \(five)".trimmingCharacters(in: .whitespaces))
+            let short = usage.shortWindow.map { "\($0.label) \(UsageFormat.percent($0.utilization))" } ?? ""
+            return .success(String(localized: "Connected. \(short)").trimmingCharacters(in: .whitespaces))
         } catch let error as ProviderError {
             return .failure(error)
         } catch {

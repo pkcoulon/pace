@@ -14,18 +14,30 @@ enum SnapshotExporter {
     static func export(to directory: URL, store: UsageStore, settings: SettingsStore) {
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 
-        let label = MenuBarRenderer.image(for: MenuBarComposer.items(states: store.states, settings: settings))
-        write(onMenuBar(label, dark: false), to: directory.appendingPathComponent("menubar-light.png"))
-        write(onMenuBar(label, dark: true), to: directory.appendingPathComponent("menubar-dark.png"))
+        let now = Date()
+        for dark in [false, true] {
+            let appearance = dark ? "dark" : "light"
+            let label = MenuBarRenderer.image(store: store, settings: settings, now: now, dark: dark)
+            write(onMenuBar(label, dark: dark), to: directory.appendingPathComponent("menubar-\(appearance).png"))
+            for style in MenuBarStyle.allCases {
+                let image = MenuBarRenderer.image(store: store, settings: settings, now: now, dark: dark, style: style)
+                write(onMenuBar(image, dark: dark), to: directory.appendingPathComponent("menubar-\(style.rawValue)-\(appearance).png"))
+            }
+        }
 
-        let popover = PopoverView()
-            .environmentObject(store)
-            .environmentObject(settings)
-            .background(Color(nsColor: .windowBackgroundColor))
-        let renderer = ImageRenderer(content: popover)
-        renderer.scale = 2
-        if let image = renderer.nsImage {
-            write(image, to: directory.appendingPathComponent("popover.png"))
+        for dark in [false, true] {
+            NSApp.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
+            let popover = PopoverView()
+                .environmentObject(store)
+                .environmentObject(settings)
+                .environment(\.isSnapshot, true)
+                .environment(\.colorScheme, dark ? .dark : .light)
+                .background(Color(white: dark ? 0.14 : 0.94))
+            let renderer = ImageRenderer(content: popover)
+            renderer.scale = 2
+            if let image = renderer.nsImage {
+                write(image, to: directory.appendingPathComponent("popover-\(dark ? "dark" : "light").png"))
+            }
         }
     }
 

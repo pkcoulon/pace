@@ -82,33 +82,28 @@ struct CodexUsageResponse: Decodable {
         credits = try? c.decodeIfPresent(Credits.self, forKey: .credits)
     }
 
-    /// Classe les fenêtres par durée réelle (18000 s = 5 h, 604800 s = 7 j), pas par
+    /// Classe les fenêtres par durée réelle (≤ 1 jour : courte, sinon longue), pas par
     /// position dans le JSON : sur certains plans la 5 h n'existe pas et l'hebdo
     /// occupe le slot `primary_window`.
-    func mapped() -> (five: UsageWindow?, weekly: UsageWindow?) {
-        let windows = [rateLimit?.primaryWindow, rateLimit?.secondaryWindow].compactMap { $0 }
-        func isFiveHour(_ w: Window) -> Bool {
-            guard let seconds = w.limitWindowSeconds else { return false }
-            return abs(seconds - 18_000) < abs(seconds - 604_800)
-        }
-        func window(_ w: Window?) -> UsageWindow? {
-            guard let w else { return nil }
-            return UsageWindow(
-                utilization: w.usedPercent,
-                resetsAt: w.resetDate(),
-                windowSeconds: w.limitWindowSeconds.map(TimeInterval.init)
+    func mapped() -> (short: UsageWindow?, long: UsageWindow?) {
+        let windows = [rateLimit?.primaryWindow, rateLimit?.secondaryWindow].compactMap { $0 }.map {
+            UsageWindow(
+                utilization: $0.usedPercent,
+                resetsAt: $0.resetDate(),
+                windowSeconds: $0.limitWindowSeconds.map(TimeInterval.init)
             )
         }
-        let five = window(windows.first(where: isFiveHour))
-        let weekly = window(windows.first(where: { !isFiveHour($0) }))
-        return (five, weekly)
+        func slot(_ window: UsageWindow) -> WindowSlot {
+            window.windowSeconds.map(WindowSlot.init(windowSeconds:)) ?? .long
+        }
+        return (windows.first { slot($0) == .short }, windows.first { slot($0) == .long })
     }
 
     func extra() -> ExtraUsage? {
         guard let c = credits else { return nil }
         let balance = c.balance ?? 0
         guard c.hasCredits || c.unlimited || balance > 0 else { return nil }
-        let detail = c.unlimited ? "illimités" : Money.format(balance, currency: "USD")
-        return ExtraUsage(label: "Crédits", detail: detail, fraction: nil)
+        let detail = c.unlimited ? String(localized: "unlimited") : Money.format(balance, currency: "USD")
+        return ExtraUsage(label: String(localized: "Credits"), detail: detail, fraction: nil)
     }
 }

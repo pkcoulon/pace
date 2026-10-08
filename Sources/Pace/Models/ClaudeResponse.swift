@@ -113,7 +113,7 @@ struct ClaudeUsageResponse: Decodable {
         let usedAmount = used / divisor
         let limitAmount = (e.monthlyLimit ?? 0) / divisor
         let detail = "\(Money.format(usedAmount, currency: currency)) / \(Money.format(limitAmount, currency: currency))"
-        return ExtraUsage(label: "Extra usage", detail: detail, fraction: (e.utilization ?? 0) / 100)
+        return ExtraUsage(label: String(localized: "Extra usage"), detail: detail, fraction: (e.utilization ?? 0) / 100)
     }
 }
 
