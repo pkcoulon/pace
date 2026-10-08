@@ -139,7 +139,7 @@ private struct ConnectorRow: View {
                 Text(provider.displayName)
                     .font(.body.weight(.medium))
                 Label {
-                    Text(markdown(status.text))
+                    Text(AttributedString(inlineMarkdownWithoutLinks: status.text))
                         .foregroundStyle(status.isProblem ? status.tint : .secondary)
                 } icon: {
                     Image(systemName: status.icon)
@@ -159,11 +159,6 @@ private struct ConnectorRow: View {
                 .labelsHidden()
         }
         .padding(.vertical, 2)
-    }
-
-    private func markdown(_ text: String) -> AttributedString {
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        return (try? AttributedString(markdown: text, options: options)) ?? AttributedString(text)
     }
 }
 

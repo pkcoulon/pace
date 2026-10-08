@@ -7,8 +7,7 @@ struct Callout: View {
 
     init(icon: String, text: String, tint: Color, markdown: Bool = false) {
         self.icon = icon
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        self.text = markdown ? (try? AttributedString(markdown: text, options: options)) ?? AttributedString(text) : AttributedString(text)
+        self.text = markdown ? AttributedString(inlineMarkdownWithoutLinks: text) : AttributedString(text)
         self.tint = tint
     }
 
@@ -26,5 +25,16 @@ struct Callout: View {
         .padding(.vertical, 7)
         .background(tint.opacity(Theme.Opacity.tint), in: Theme.callout)
         .accessibilityElement(children: .combine)
+    }
+}
+
+extension AttributedString {
+    init(inlineMarkdownWithoutLinks text: String) {
+        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+        var parsed = (try? AttributedString(markdown: text, options: options)) ?? AttributedString(text)
+        for range in parsed.runs.filter({ $0.link != nil }).map(\.range) {
+            parsed[range].link = nil
+        }
+        self = parsed
     }
 }
