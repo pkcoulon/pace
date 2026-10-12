@@ -59,8 +59,8 @@ enum ProviderRegistry {
             accent: Color(red: 137 / 255, green: 87 / 255, blue: 229 / 255),
             usagePageURL: URL(string: "https://github.com/settings/copilot")!,
             statusPage: StatusPage(summaryURL: Endpoints.copilotStatus, componentMatchers: ["copilot"]),
-            setupHint: String(localized: "Run `gh auth login` or sign in to Copilot in your editor"),
-            isDetected: { CopilotTokenReader.hasEditorConfig() },
+            setupHint: String(localized: "Sign in with GitHub in Settings or run `gh auth login`"),
+            isDetected: { CopilotTokenReader.isDetected() },
             makeProvider: { CopilotUsageProvider() }
         ),
         ProviderDescriptor(

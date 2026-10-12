@@ -31,10 +31,13 @@
 "Based on your last hour." = "Based on your last hour.";
 "Both" = "Both";
 "Budget ~%@/day" = "Budget ~%@/day";
+"Cancel" = "Cancel";
 "Check for updates" = "Check for updates";
 "Claude Code settings" = "Claude Code settings";
 "claude.ai session key" = "claude.ai session key";
 "Cloudflare is blocking the claude.ai request" = "Cloudflare is blocking the claude.ai request";
+"Code copied: paste it on the GitHub page, then authorize the Copilot app." = "Code copied: paste it on the GitHub page, then authorize the Copilot app.";
+"Code expired, sign in again" = "Code expired, sign in again";
 "Codex session expired, run `codex login` again" = "Codex session expired, run `codex login` again";
 "Color alerts only" = "Color alerts only";
 "Comfortable: ~%@ at reset" = "Comfortable: ~%@ at reset";
@@ -71,7 +74,12 @@
 "Fallback: claude.ai session key" = "Fallback: claude.ai session key";
 "From %@ to %@" = "From %@ to %@";
 "General" = "General";
+"GitHub account" = "GitHub account";
+"GitHub refused the sign-in" = "GitHub refused the sign-in";
+"GitHub sign-in" = "GitHub sign-in";
+"GitHub sign-in expired, sign in again in Settings" = "GitHub sign-in expired, sign in again in Settings";
 "GitHub token rejected, run `gh auth login` again" = "GitHub token rejected, run `gh auth login` again";
+"Host" = "Host";
 "In the menu bar and the popover: neutral values while all is well, orange then red near the limit." = "In the menu bar and the popover: neutral values while all is well, orange then red near the limit.";
 "Invalid OpenRouter key, paste it again in Settings" = "Invalid OpenRouter key, paste it again in Settings";
 "Invalid or expired session key" = "Invalid or expired session key";
@@ -112,6 +120,7 @@
 "One ring per connector: the outer one for the short window, the inner one for the long window." = "One ring per connector: the outer one for the short window, the inner one for the long window.";
 "Only the highest value, with its connector's letter." = "Only the highest value, with its connector's letter.";
 "Only used when Claude Code isn't signed in." = "Only used when Claude Code isn't signed in.";
+"Open GitHub" = "Open GitHub";
 "Open Pace at login" = "Open Pace at login";
 "Open the %@ usage page" = "Open the %@ usage page";
 "Open the release page for version %@" = "Open the release page for version %@";
@@ -155,7 +164,6 @@
 "Run `claude` or add a session key" = "Run `claude` or add a session key";
 "Run `claude` or add a session key in Settings" = "Run `claude` or add a session key in Settings";
 "Run `codex login`" = "Run `codex login`";
-"Run `gh auth login` or sign in to Copilot in your editor" = "Run `gh auth login` or sign in to Copilot in your editor";
 "Save" = "Save";
 "Saved in the Keychain" = "Saved in the Keychain";
 "Saved, paste a key to replace it" = "Saved, paste a key to replace it";
@@ -167,6 +175,12 @@
 "Short window" = "Short window";
 "Show pace" = "Show pace";
 "Sign in to the Cursor app" = "Sign in to the Cursor app";
+"Sign in with GitHub" = "Sign in with GitHub";
+"Sign in with GitHub in Settings or run `gh auth login`" = "Sign in with GitHub in Settings or run `gh auth login`";
+"Sign out" = "Sign out";
+"Sign-in declined on GitHub" = "Sign-in declined on GitHub";
+"Signed in with GitHub" = "Signed in with GitHub";
+"Signed in with GitHub (%@)" = "Signed in with GitHub (%@)";
 "Solid: used so far. Dotted: projected at reset at your current pace." = "Solid: used so far. Dotted: projected at reset at your current pace.";
 "Source code" = "Source code";
 "stale data" = "stale data";
@@ -202,6 +216,7 @@
 "When the short window will run out in less than an hour at the current pace." = "When the short window will run out in less than an hour at the current pace.";
 "Window" = "Window";
 "Window reset" = "Window reset";
+"Works with VS Code and without the GitHub CLI. Company account on a ghe.com domain: enter it above." = "Works with VS Code and without the GitHub CLI. Company account on a ghe.com domain: enter it above.";
 "writing auth.json (errno %d)" = "writing auth.json (errno %d)";
 "Your AI usage in the menu bar.\nNo telemetry, no dependencies." = "Your AI usage in the menu bar.\nNo telemetry, no dependencies.";
 "z.ai API key" = "z.ai API key";

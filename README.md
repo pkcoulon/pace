@@ -50,7 +50,7 @@ macOS 14+, Apple Silicon. Puis, pour chaque connecteur voulu :
 |---|---|
 | Claude | Claude Code connecté (`claude`), sinon une session key claude.ai |
 | Codex | `codex login` |
-| Copilot | `gh auth login`, ou Copilot connecté dans ton éditeur |
+| Copilot | `gh auth login`, Copilot connecté dans ton éditeur, ou « Se connecter avec GitHub » dans les réglages (VS Code, comptes `ghe.com`) |
 | Cursor | session ouverte dans l'app Cursor |
 | z.ai | clé API collée dans les réglages, ou Claude Code configuré sur z.ai |
 | OpenRouter | clé collée dans les réglages (jauge si la clé a une limite) |

@@ -1,5 +1,10 @@
 import Foundation
 
+extension SecretAccount {
+    static let copilotGitHubToken = "copilot.githubToken"
+    static let copilotGitHubHost = "copilot.githubHost"
+}
+
 actor CopilotUsageProvider: UsageProvider {
     nonisolated let id: ProviderID = .copilot
 
@@ -11,9 +16,9 @@ actor CopilotUsageProvider: UsageProvider {
 
     func fetchUsage() async throws -> ProviderUsage {
         guard let token = CopilotTokenReader.read() else {
-            throw ProviderError.notConfigured(hint: String(localized: "Run `gh auth login` or sign in to Copilot in your editor"))
+            throw ProviderError.notConfigured(hint: String(localized: "Sign in with GitHub in Settings or run `gh auth login`"))
         }
-        var request = URLRequest(url: Endpoints.copilotUsage, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 30)
+        var request = URLRequest(url: Endpoints.copilotUsage(host: token.host), cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 30)
         request.httpMethod = "GET"
         let headers = [
             "Authorization": "token \(token.value)",
@@ -27,7 +32,10 @@ actor CopilotUsageProvider: UsageProvider {
             request.setValue(value, forHTTPHeaderField: name)
         }
 
-        let data = try await ProviderHTTP.data(for: request, session: session, unauthorizedHint: String(localized: "GitHub token rejected, run `gh auth login` again"))
+        let rejected = token.isPaceSignIn
+            ? String(localized: "GitHub sign-in expired, sign in again in Settings")
+            : String(localized: "GitHub token rejected, run `gh auth login` again")
+        let data = try await ProviderHTTP.data(for: request, session: session, unauthorizedHint: rejected)
         let decoded = try ProviderHTTP.decode(CopilotUsageResponse.self, from: data)
         let (long, models) = decoded.mapped()
         let extra = decoded.extra()
@@ -49,6 +57,8 @@ actor CopilotUsageProvider: UsageProvider {
 struct CopilotToken: Sendable {
     let value: String
     let source: String
+    var host = GitHubDeviceFlow.defaultHost
+    var isPaceSignIn = false
 }
 
 enum CopilotTokenReader {
@@ -66,12 +76,28 @@ enum CopilotTokenReader {
         configDirectory.appendingPathComponent("gh/hosts.yml")
     }
 
-    static func hasEditorConfig() -> Bool {
-        editorConfigURLs.contains { FileManager.default.fileExists(atPath: $0.path) }
+    static func isDetected() -> Bool {
+        editorConfigURLs.contains { FileManager.default.fileExists(atPath: $0.path) } || paceSignInHost() != nil
     }
 
     static func read() -> CopilotToken? {
-        fromEditorConfig() ?? fromGhHosts() ?? fromGhKeychain()
+        fromPaceSignIn() ?? fromEditorConfig() ?? fromGhHosts() ?? fromGhKeychain()
+    }
+
+    static func paceSignInHost() -> String? {
+        guard SecretStore.get(SecretAccount.copilotGitHubToken) != nil else { return nil }
+        return SecretStore.get(SecretAccount.copilotGitHubHost) ?? GitHubDeviceFlow.defaultHost
+    }
+
+    static func savePaceSignIn(token: String?, host: String) {
+        SecretStore.set(token, account: SecretAccount.copilotGitHubToken)
+        SecretStore.set(token == nil || host == GitHubDeviceFlow.defaultHost ? nil : host, account: SecretAccount.copilotGitHubHost)
+    }
+
+    private static func fromPaceSignIn() -> CopilotToken? {
+        guard let token = SecretStore.get(SecretAccount.copilotGitHubToken) else { return nil }
+        let host = SecretStore.get(SecretAccount.copilotGitHubHost) ?? GitHubDeviceFlow.defaultHost
+        return CopilotToken(value: token, source: String(localized: "GitHub sign-in"), host: host, isPaceSignIn: true)
     }
 
     private static func fromEditorConfig() -> CopilotToken? {

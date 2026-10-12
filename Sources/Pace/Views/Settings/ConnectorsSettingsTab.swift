@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct ConnectorsSettingsTab: View {
@@ -6,6 +7,8 @@ struct ConnectorsSettingsTab: View {
     @State private var detected: Set<ProviderID> = []
     @State private var storedKeys: Set<String> = []
     @State private var showsClaudeFallback = false
+    @State private var copilotSignInHost: String?
+    @State private var showsCopilotSignIn = false
 
     private static let apiKeys: [ProviderID: (account: String, prompt: String, footnote: String)] = [
         .zai: (
@@ -50,6 +53,10 @@ struct ConnectorsSettingsTab: View {
             refreshCredentials()
             if case .notConfigured? = store.states[.claude]?.error { showsClaudeFallback = true }
             if settings.hasClaudeSessionKey { showsClaudeFallback = true }
+            if copilotSignInHost != nil || store.states[.copilot]?.error?.isAuthFailure == true { showsCopilotSignIn = true }
+        }
+        .onChange(of: store.states[.copilot]?.error) { _, error in
+            if error?.isAuthFailure == true { showsCopilotSignIn = true }
         }
     }
 
@@ -74,6 +81,17 @@ struct ConnectorsSettingsTab: View {
             } label: {
                 Label("Fallback: claude.ai session key", systemImage: "key")
             }
+        } else if provider.id == .copilot {
+            DisclosureGroup(isExpanded: $showsCopilotSignIn) {
+                GitHubSignIn(signedInHost: copilotSignInHost) { token, host in
+                    CopilotTokenReader.savePaceSignIn(token: token, host: host)
+                    refreshCredentials()
+                    Task { await store.refresh(.copilot) }
+                }
+                .padding(.vertical, 4)
+            } label: {
+                Label("GitHub account", systemImage: "person.badge.key")
+            }
         } else if let key = Self.apiKeys[provider.id] {
             SecretKeyEditor(
                 prompt: key.prompt,
@@ -92,6 +110,7 @@ struct ConnectorsSettingsTab: View {
     private func refreshCredentials() {
         detected = Set(ProviderRegistry.all.filter { $0.isDetected() }.map(\.id))
         storedKeys = Set(Self.apiKeys.values.map(\.account).filter { SecretStore.get($0) != nil })
+        copilotSignInHost = CopilotTokenReader.paceSignInHost()
     }
 
     private func status(for provider: ProviderDescriptor, now: Date) -> ConnectorStatus {
@@ -251,5 +270,94 @@ private struct SecretKeyEditor: View {
             isTesting = false
             result = outcome
         }
+    }
+}
+
+private struct GitHubSignIn: View {
+    let signedInHost: String?
+    let save: (_ token: String?, _ host: String) -> Void
+
+    @State private var host = ""
+    @State private var code: GitHubDeviceFlow.DeviceCode?
+    @State private var error: ProviderError?
+    @State private var flow: Task<Void, Never>?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let signedInHost {
+                HStack(spacing: 8) {
+                    Label(signedInHost == GitHubDeviceFlow.defaultHost ? String(localized: "Signed in with GitHub") : String(localized: "Signed in with GitHub (\(signedInHost))"), systemImage: "lock.fill")
+                        .foregroundStyle(.secondary)
+                    Spacer(minLength: 8)
+                    Button("Sign out", role: .destructive) { save(nil, signedInHost) }
+                }
+                .font(.caption)
+                .controlSize(.small)
+            } else if let code {
+                HStack(spacing: 8) {
+                    Text(verbatim: code.userCode)
+                        .font(.title3.monospaced().weight(.semibold))
+                        .textSelection(.enabled)
+                    Spacer(minLength: 8)
+                    Button("Open GitHub") { NSWorkspace.shared.open(code.verificationURL) }
+                    Button("Cancel", action: cancel)
+                }
+                .controlSize(.small)
+                HStack(spacing: 6) {
+                    ProgressView().controlSize(.mini)
+                    Text("Code copied: paste it on the GitHub page, then authorize the Copilot app.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            } else {
+                HStack(spacing: 8) {
+                    TextField("Host", text: $host, prompt: Text(verbatim: GitHubDeviceFlow.defaultHost))
+                        .labelsHidden()
+                        .textFieldStyle(.roundedBorder)
+                        .onSubmit(start)
+                    Button("Sign in with GitHub", action: start)
+                        .disabled(GitHubDeviceFlow.normalizedHost(host) == nil)
+                }
+                if let error {
+                    Label(error.message, systemImage: "xmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                } else {
+                    Text("Works with VS Code and without the GitHub CLI. Company account on a ghe.com domain: enter it above.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .onDisappear(perform: cancel)
+    }
+
+    private func start() {
+        guard flow == nil, let host = GitHubDeviceFlow.normalizedHost(host) else { return }
+        error = nil
+        flow = Task {
+            do {
+                let code = try await GitHubDeviceFlow.requestCode(host: host)
+                self.code = code
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(code.userCode, forType: .string)
+                NSWorkspace.shared.open(code.verificationURL)
+                let token = try await GitHubDeviceFlow.waitForToken(code, host: host)
+                save(token, host)
+            } catch {
+                guard !Task.isCancelled else { return }
+                self.error = error as? ProviderError ?? .network(error.localizedDescription)
+            }
+            code = nil
+            flow = nil
+        }
+    }
+
+    private func cancel() {
+        flow?.cancel()
+        flow = nil
+        code = nil
     }
 }

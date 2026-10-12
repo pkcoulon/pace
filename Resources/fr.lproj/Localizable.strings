@@ -31,10 +31,13 @@
 "Based on your last hour." = "Calculé sur ta dernière heure.";
 "Both" = "Les deux";
 "Budget ~%@/day" = "Budget ~%@/jour";
+"Cancel" = "Annuler";
 "Check for updates" = "Vérifier les mises à jour";
 "Claude Code settings" = "Réglages Claude Code";
 "claude.ai session key" = "Session key claude.ai";
 "Cloudflare is blocking the claude.ai request" = "Cloudflare bloque la requête claude.ai";
+"Code copied: paste it on the GitHub page, then authorize the Copilot app." = "Code copié : colle-le sur la page GitHub, puis autorise l'app Copilot.";
+"Code expired, sign in again" = "Code expiré, reconnecte-toi";
 "Codex session expired, run `codex login` again" = "Session Codex expirée, relance `codex login`";
 "Color alerts only" = "Colorer seulement les alertes";
 "Comfortable: ~%@ at reset" = "Large : ~%@ au reset";
@@ -71,7 +74,12 @@
 "Fallback: claude.ai session key" = "Mode secours : session key claude.ai";
 "From %@ to %@" = "De %@ à %@";
 "General" = "Général";
+"GitHub account" = "Compte GitHub";
+"GitHub refused the sign-in" = "GitHub a refusé la connexion";
+"GitHub sign-in" = "Connexion GitHub";
+"GitHub sign-in expired, sign in again in Settings" = "Connexion GitHub expirée, reconnecte-toi dans les réglages";
 "GitHub token rejected, run `gh auth login` again" = "Token GitHub refusé, relance `gh auth login`";
+"Host" = "Hôte";
 "In the menu bar and the popover: neutral values while all is well, orange then red near the limit." = "Dans la barre de menu et le popover : valeurs neutres tant que tout va bien, orange puis rouge près de la limite.";
 "Invalid OpenRouter key, paste it again in Settings" = "Clé OpenRouter invalide, recolle-la dans les réglages";
 "Invalid or expired session key" = "Session key invalide ou expirée";
@@ -112,6 +120,7 @@
 "One ring per connector: the outer one for the short window, the inner one for the long window." = "Un anneau par connecteur : l'extérieur pour la fenêtre courte, l'intérieur pour la longue.";
 "Only the highest value, with its connector's letter." = "Seulement la valeur la plus haute, avec la lettre de son connecteur.";
 "Only used when Claude Code isn't signed in." = "Utilisée seulement si Claude Code n'est pas connecté.";
+"Open GitHub" = "Ouvrir GitHub";
 "Open Pace at login" = "Ouvrir Pace à la connexion";
 "Open the %@ usage page" = "Ouvrir la page d'usage %@";
 "Open the release page for version %@" = "Ouvrir la page de la version %@";
@@ -155,7 +164,6 @@
 "Run `claude` or add a session key" = "Lance `claude` ou ajoute une session key";
 "Run `claude` or add a session key in Settings" = "Lance `claude` ou ajoute une session key dans les réglages";
 "Run `codex login`" = "Lance `codex login`";
-"Run `gh auth login` or sign in to Copilot in your editor" = "Lance `gh auth login` ou connecte Copilot dans ton éditeur";
 "Save" = "Enregistrer";
 "Saved in the Keychain" = "Enregistrée dans le Trousseau";
 "Saved, paste a key to replace it" = "Enregistrée, colle une clé pour la remplacer";
@@ -167,6 +175,12 @@
 "Short window" = "Fenêtre courte";
 "Show pace" = "Afficher le rythme";
 "Sign in to the Cursor app" = "Connecte-toi dans l'app Cursor";
+"Sign in with GitHub" = "Se connecter avec GitHub";
+"Sign in with GitHub in Settings or run `gh auth login`" = "Connecte-toi à GitHub dans les réglages ou lance `gh auth login`";
+"Sign out" = "Se déconnecter";
+"Sign-in declined on GitHub" = "Connexion refusée sur GitHub";
+"Signed in with GitHub" = "Connecté avec GitHub";
+"Signed in with GitHub (%@)" = "Connecté avec GitHub (%@)";
 "Solid: used so far. Dotted: projected at reset at your current pace." = "Plein : déjà consommé. Pointillés : projection au reset à ton rythme actuel.";
 "Source code" = "Code source";
 "stale data" = "données anciennes";
@@ -202,6 +216,7 @@
 "When the short window will run out in less than an hour at the current pace." = "Quand la fenêtre courte sera épuisée dans moins d'une heure au rythme actuel.";
 "Window" = "Fenêtre";
 "Window reset" = "Fenêtre réinitialisée";
+"Works with VS Code and without the GitHub CLI. Company account on a ghe.com domain: enter it above." = "Marche avec VS Code et sans la CLI GitHub. Compte d'entreprise sur un domaine ghe.com : saisis-le ci-dessus.";
 "writing auth.json (errno %d)" = "écriture auth.json (errno %d)";
 "Your AI usage in the menu bar.\nNo telemetry, no dependencies." = "Ta consommation d'IA dans la barre de menu.\nSans télémétrie, sans dépendance.";
 "z.ai API key" = "Clé API z.ai";

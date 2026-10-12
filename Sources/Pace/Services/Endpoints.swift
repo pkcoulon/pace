@@ -16,7 +16,16 @@ enum Endpoints {
     static let codexTokenRefresh = URL(string: "https://auth.openai.com/oauth/token")!
     static let codexClientID = "app_EMoamEEZ73f0CkXaXp7hrann"
 
-    static let copilotUsage = URL(string: "https://api.github.com/copilot_internal/user")!
+    static let githubClientID = "Iv1.b507a08c87ecfe98"
+    static func copilotUsage(host: String) -> URL {
+        URL(string: "https://api.\(host)/copilot_internal/user")!
+    }
+    static func githubDeviceCode(host: String) -> URL {
+        URL(string: "https://\(host)/login/device/code")!
+    }
+    static func githubAccessToken(host: String) -> URL {
+        URL(string: "https://\(host)/login/oauth/access_token")!
+    }
 
     static let cursorUsage = URL(string: "https://api2.cursor.sh/aiserver.v1.DashboardService/GetCurrentPeriodUsage")!
     static let cursorPlanInfo = URL(string: "https://api2.cursor.sh/aiserver.v1.DashboardService/GetPlanInfo")!
