@@ -4,23 +4,24 @@ struct CappedScrollView<Content: View>: View {
     let maxHeight: CGFloat
     @ViewBuilder var content: Content
 
-    @State private var contentHeight: CGFloat = 0
     @Environment(\.isSnapshot) private var isSnapshot
 
     var body: some View {
-        if contentHeight > maxHeight, !isSnapshot {
-            ScrollView {
-                measured
-            }
-            .frame(height: maxHeight)
+        if isSnapshot {
+            content
         } else {
-            measured
+            ScrollView {
+                content
+            }
+            .scrollBounceBehavior(.basedOnSize)
+            .frame(maxHeight: maxHeight)
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
+}
 
-    private var measured: some View {
-        content
-            .fixedSize(horizontal: false, vertical: true)
-            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
+extension View {
+    func onSizeChange(_ action: @escaping (CGSize) -> Void) -> some View {
+        onGeometryChange(for: CGSize.self) { $0.size } action: { action($0) }
     }
 }

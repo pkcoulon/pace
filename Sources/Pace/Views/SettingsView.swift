@@ -1,18 +1,40 @@
 import SwiftUI
 
-struct SettingsView: View {
-    var body: some View {
-        TabView {
-            GeneralSettingsTab()
-                .tabItem { Label("General", systemImage: "gearshape") }
-            ConnectorsSettingsTab()
-                .tabItem { Label("Connectors", systemImage: "powerplug") }
-            MenuBarSettingsTab()
-                .tabItem { Label("Menu Bar", systemImage: "menubar.rectangle") }
-            NotificationsSettingsTab()
-                .tabItem { Label("Notifications", systemImage: "bell.badge") }
-            AboutSettingsTab()
-                .tabItem { Label("About", systemImage: "info.circle") }
+enum SettingsPane: Int, CaseIterable {
+    case general
+    case connectors
+    case menuBar
+    case notifications
+    case about
+
+    var title: String {
+        switch self {
+        case .general: String(localized: "General")
+        case .connectors: String(localized: "Connectors")
+        case .menuBar: String(localized: "Menu Bar")
+        case .notifications: String(localized: "Notifications")
+        case .about: String(localized: "About")
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .general: "gearshape"
+        case .connectors: "powerplug"
+        case .menuBar: "menubar.rectangle"
+        case .notifications: "bell.badge"
+        case .about: "info.circle"
+        }
+    }
+
+    @MainActor @ViewBuilder
+    var content: some View {
+        switch self {
+        case .general: GeneralSettingsTab()
+        case .connectors: ConnectorsSettingsTab()
+        case .menuBar: MenuBarSettingsTab()
+        case .notifications: NotificationsSettingsTab()
+        case .about: AboutSettingsTab()
         }
     }
 }

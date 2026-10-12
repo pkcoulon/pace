@@ -1,5 +1,4 @@
-import Combine
-import SwiftUI
+import Foundation
 
 struct MenuBarValue: Equatable {
     var percent: Double?
@@ -133,34 +132,5 @@ enum MenuBarComposer {
             return minutes % 60 == 0 ? "\(hours)h" : "\(hours)h\(String(format: "%02d", minutes % 60))"
         }
         return String(localized: "menubar.countdown.days", defaultValue: "\(hours / 24)d")
-    }
-}
-
-struct MenuBarLabel: View {
-    @ObservedObject var store: UsageStore
-    @ObservedObject var settings: SettingsStore
-    @StateObject private var clock = MenuBarClock()
-    @Environment(\.colorScheme) private var colorScheme
-
-    var body: some View {
-        let items = MenuBarComposer.items(store: store, settings: settings, now: clock.now)
-        Image(nsImage: MenuBarRenderer.image(
-            for: items,
-            style: settings.menuBarStyle,
-            highlightOnlyAlerts: settings.highlightOnlyAlerts,
-            dark: colorScheme == .dark
-        ))
-        .accessibilityLabel(MenuBarComposer.accessibilityLabel(items))
-    }
-}
-
-@MainActor
-private final class MenuBarClock: ObservableObject {
-    @Published private(set) var now = Date()
-
-    init() {
-        Timer.publish(every: 30, tolerance: 5, on: .main, in: .common)
-            .autoconnect()
-            .assign(to: &$now)
     }
 }

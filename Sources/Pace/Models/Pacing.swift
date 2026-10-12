@@ -31,11 +31,9 @@ struct Pacing: Equatable, Sendable {
     }
 
     var icon: String {
-        switch level {
-        case .comfortable: "tortoise.fill"
-        case .onTrack: "equal.circle.fill"
-        case .tight: "hare.fill"
-        }
+        if timeToLimit != nil { return "hourglass" }
+        if dailyBudget != nil { return "calendar" }
+        return "chart.line.uptrend.xyaxis"
     }
 
     var summary: String {
@@ -43,9 +41,20 @@ struct Pacing: Equatable, Sendable {
             return timeToLimit > 0 ? String(localized: "Limit in ~\(UsageFormat.duration(timeToLimit))") : String(localized: "Limit reached")
         }
         if let dailyBudget {
-            return String(localized: "~\(UsageFormat.percent(dailyBudget))/day")
+            return String(localized: "Budget ~\(UsageFormat.percent(dailyBudget))/day")
         }
-        return String(localized: "~\(UsageFormat.percent(projected)) at reset")
+        return String(localized: "Projected ~\(UsageFormat.percent(projected))")
+    }
+
+    var explanation: String {
+        var parts = [message]
+        if let dailyBudget {
+            parts.insert(String(localized: "Use up to ~\(UsageFormat.percent(dailyBudget)) per day to last until the reset."), at: 0)
+        }
+        parts.append(basis == .recent
+            ? String(localized: "Based on your last hour.")
+            : String(localized: "Based on your average since the start of the window."))
+        return parts.joined(separator: " ")
     }
 }
 

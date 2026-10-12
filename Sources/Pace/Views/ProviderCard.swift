@@ -28,9 +28,11 @@ struct ProviderCard: View {
                     text: status.level.label + (status.detail.map { " · \($0)" } ?? ""),
                     tint: status.level.color
                 )
+                .transition(.move(edge: .top).combined(with: .opacity))
             }
             if let error = state.error {
                 Callout(icon: Self.icon(for: error), text: error.message, tint: Self.tint(for: error), markdown: error.isAuthFailure)
+                    .transition(.move(edge: .top).combined(with: .opacity))
             }
             if let usage = state.usage {
                 content(usage)
@@ -42,7 +44,12 @@ struct ProviderCard: View {
         }
         .padding(Theme.Inset.card)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .animation(Theme.layout, value: status)
+        .animation(Theme.layout, value: state.error)
+        .animation(Theme.layout, value: state.usage == nil)
         .modifier(CardBackground(highlighted: hovering))
+        .shadow(color: .black.opacity(hovering ? 0.12 : 0), radius: 10, y: 4)
+        .scaleEffect(hovering ? 1.01 : 1)
         .contentShape(Theme.card)
         .onTapGesture(perform: openUsagePage)
         .onHover { hovering = $0 }
@@ -69,8 +76,9 @@ struct ProviderCard: View {
             } else if let slot = slots.first, let window = usage.window(slot) {
                 WindowGaugeView(provider: provider.id, slot: slot, raw: window, now: now, layout: .row)
             }
-            if let short = usage.shortWindow {
-                UsageSparkline(provider: provider, window: short.effective(at: now), history: store.history)
+            if let slot = slots.first, let window = usage.window(slot) {
+                UsageChart(provider: provider, slot: slot, window: window.effective(at: now), now: now, history: store.history)
+                    .modifier(Entrance(delay: Theme.stagger, offset: 4))
             }
             if !usage.models.isEmpty || usage.extra != nil {
                 if !slots.isEmpty {

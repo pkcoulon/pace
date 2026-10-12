@@ -29,7 +29,7 @@ enum Theme {
         static let iconButton: CGFloat = 26
         static let menuBarRing: CGFloat = 16
         static let monogram: CGFloat = 24
-        static let sparkline: CGFloat = 30
+        static let chart: CGFloat = 60
         static let bar: CGFloat = 4
     }
 
@@ -46,6 +46,10 @@ enum Theme {
 
     static let smooth: Animation = .smooth(duration: 0.35)
     static let hover: Animation = .easeOut(duration: 0.12)
+    static let entrance: Animation = .spring(duration: 0.55, bounce: 0.22)
+    static let fill: Animation = .spring(duration: 0.9, bounce: 0.12)
+    static let layout: Animation = .spring(duration: 0.4, bounce: 0.15)
+    static let stagger: Double = 0.07
 
     static func number(size: CGFloat, weight: Font.Weight = .semibold) -> Font {
         .system(size: size, weight: weight, design: .rounded).monospacedDigit()

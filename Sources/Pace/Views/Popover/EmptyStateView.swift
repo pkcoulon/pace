@@ -1,14 +1,14 @@
-import AppKit
 import SwiftUI
 
 struct EmptyStateView: View {
-    @Environment(\.openSettings) private var openSettings
+    @Environment(\.isPanelOpen) private var isOpen
 
     var body: some View {
         VStack(spacing: Theme.Spacing.m) {
             Image(systemName: "gauge.with.dots.needle.33percent")
                 .font(.system(size: 36, weight: .light))
                 .foregroundStyle(.secondary)
+                .symbolEffect(.bounce, value: isOpen)
                 .accessibilityHidden(true)
             VStack(spacing: Theme.Spacing.xs) {
                 Text("No active connector")
@@ -20,8 +20,7 @@ struct EmptyStateView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             Button("Enable a connector") {
-                openSettings()
-                NSApp.activate()
+                AppShell.shared?.showSettings(.connectors)
             }
             .buttonStyle(.borderedProminent)
             .padding(.top, Theme.Spacing.xs)

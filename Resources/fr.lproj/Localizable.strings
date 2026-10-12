@@ -1,7 +1,7 @@
 "%@ ago" = "il y a %@";
+"%@ cycle" = "Cycle %@";
 "%@ window" = "Fenêtre %@";
 "%@ window trend" = "Évolution de la fenêtre %@";
-"%@ window usage since the start of the cycle. Dotted line: steady pace until the reset." = "Usage de la fenêtre %@ depuis le début du cycle. Pointillés : rythme régulier jusqu'au reset.";
 "%@ · %@ window" = "%1$@ · fenêtre %2$@";
 "%@ · %@ window reset" = "%1$@ · fenêtre %2$@ réinitialisée";
 "%@ · window" = "%@ · fenêtre";
@@ -12,6 +12,8 @@
 "%lldd %lldh" = "%lld j %lld h";
 "%lldh" = "%lld h";
 "%lldh %@" = "%lld h %@";
+"+%@/day" = "+%@/jour";
+"+%@/h" = "+%@/h";
 "5h, day" = "5 h, journée";
 "; " = " ; ";
 "About" = "À propos";
@@ -25,7 +27,10 @@
 "auth.json serialization" = "sérialisation auth.json";
 "Authentication approaches studied in [TokenEater](https://github.com/AThevon/TokenEater), [Claude-Usage-Tracker](https://github.com/hamed-elfayome/Claude-Usage-Tracker), [codexbar](https://github.com/steipete/codexbar) and [usage4claude](https://github.com/f-is-h/usage4claude). Copilot, Cursor, z.ai and OpenRouter formats cross-checked with [openusage](https://github.com/robinebers/openusage), codexbar and the [z.ai plugins](https://github.com/zai-org/zai-coding-plugins)." = "Approches d'authentification étudiées dans [TokenEater](https://github.com/AThevon/TokenEater), [Claude-Usage-Tracker](https://github.com/hamed-elfayome/Claude-Usage-Tracker), [codexbar](https://github.com/steipete/codexbar) et [usage4claude](https://github.com/f-is-h/usage4claude). Formats Copilot, Cursor, z.ai et OpenRouter recoupés avec [openusage](https://github.com/robinebers/openusage), codexbar et les [plugins z.ai](https://github.com/zai-org/zai-coding-plugins).";
 "Available when Pace runs from Pace.app." = "Disponible quand Pace est lancé depuis Pace.app.";
+"Based on your average since the start of the window." = "Calculé sur ta moyenne depuis le début de la fenêtre.";
+"Based on your last hour." = "Calculé sur ta dernière heure.";
 "Both" = "Les deux";
+"Budget ~%@/day" = "Budget ~%@/jour";
 "Check for updates" = "Vérifier les mises à jour";
 "Claude Code settings" = "Réglages Claude Code";
 "claude.ai session key" = "Session key claude.ai";
@@ -74,6 +79,7 @@
 "just now" = "à l'instant";
 "Key" = "Clé";
 "Last data received %@" = "Dernières données reçues %@";
+"Limit" = "Limite";
 "Limit in ~%@" = "Limite dans ~%@";
 "Limit reached" = "Limite atteinte";
 "limit reached %@, resets in %@" = "limite atteinte %@, réinitialisation dans %@";
@@ -127,6 +133,7 @@
 "Paste your z.ai API key" = "Colle ta clé API z.ai";
 "Paste your z.ai API key in Settings" = "Colle ta clé API z.ai dans les réglages";
 "Preview" = "Aperçu";
+"Projected ~%@" = "Projection ~%@";
 "Projection at reset and time left before the limit, in the popover." = "Projection au reset et temps restant avant la limite, dans le popover.";
 "Quit Pace" = "Quitter Pace";
 "Quit Pace (⌘Q)" = "Quitter Pace (⌘Q)";
@@ -138,7 +145,9 @@
 "Reset" = "Réinitialisée";
 "reset" = "réinitialisée";
 "Reset, waiting for new data" = "Réinitialisée, en attente de nouvelles données";
+"Resets %@" = "Réinit. %@";
 "resets %@" = "réinit. %@";
+"Resets in %@" = "Réinit. dans %@";
 "resets in %@" = "réinit. dans %@";
 "Reveal in Finder" = "Révéler dans le Finder";
 "Rewritten on every refresh, for your scripts, Raycast or SketchyBar." = "Réécrit à chaque rafraîchissement, pour tes scripts, Raycast ou SketchyBar.";
@@ -154,14 +163,18 @@
 "Session key expired, paste it again in Settings" = "Session key expirée, recolle-la dans les réglages";
 "Settings" = "Réglages";
 "Settings (⌘,)" = "Réglages (⌘,)";
+"Settings…" = "Réglages…";
 "Short window" = "Fenêtre courte";
 "Show pace" = "Afficher le rythme";
 "Sign in to the Cursor app" = "Connecte-toi dans l'app Cursor";
+"Solid: used so far. Dotted: projected at reset at your current pace." = "Plein : déjà consommé. Pointillés : projection au reset à ton rythme actuel.";
 "Source code" = "Code source";
 "stale data" = "données anciennes";
+"Steady" = "Stable";
 "Style" = "Style";
 "Test" = "Tester";
 "Text" = "Texte";
+"The chart fills in as Pace collects data" = "La courbe se dessine au fil des relevés";
 "The percentage of each window, connector by connector." = "Le pourcentage de chaque fenêtre, connecteur par connecteur.";
 "Thresholds" = "Seuils";
 "Time" = "Heure";
@@ -177,6 +190,9 @@
 "Updating…" = "Mise à jour…";
 "Usage" = "Usage";
 "Usage at %@ (threshold %@)" = "Utilisation à %@ (seuil %@)";
+"Usage over the last 24 hours" = "Consommation sur les dernières 24 h";
+"Usage over the last hour" = "Consommation sur la dernière heure";
+"Use up to ~%@ per day to last until the reset." = "Tu peux consommer jusqu'à ~%@ par jour sans atteindre la limite avant le reset.";
 "Version %@" = "Version %@";
 "View" = "Voir";
 "Waiting for data" = "En attente de données";
@@ -191,6 +207,4 @@
 "z.ai API key" = "Clé API z.ai";
 "z.ai API key rejected, paste it again in Settings" = "Clé API z.ai refusée, recolle-la dans les réglages";
 "z.ai key rejected, check ~/.claude/settings.json" = "Clé z.ai refusée, vérifie ~/.claude/settings.json";
-"~%@ at reset" = "~%@ au reset";
-"~%@/day" = "~%@/jour";
 "© 2026 Pierrick Coulon · MIT License" = "© 2026 Pierrick Coulon · Licence MIT";

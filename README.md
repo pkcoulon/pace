@@ -27,9 +27,11 @@ la limite. Un clic ouvre le détail.
 
 - Six connecteurs, activés d'office quand l'outil est déjà sur le Mac. Une
   jauge par fenêtre, détail par modèle, crédits ou dépassement.
-- **Rythme** : une coche sur la jauge marque le temps écoulé. Sur la fenêtre
-  courte, la projection suit ta dernière heure (« limite dans ~32 min ») et une
-  courbe retrace le cycle ; sur la longue, un budget par jour (« ~16 %/jour »).
+- **Rythme** : des pointillés prolongent chaque jauge jusqu'au pourcentage
+  projeté au reset, en orange si tu vas atteindre la limite. Sur la fenêtre
+  courte, la projection suit ta dernière heure (« limite dans ~32 min ») ; sur
+  la longue, un budget par jour (« budget ~16 %/jour »). Une courbe retrace le
+  cycle avec la limite et la projection.
 - Barre de menu en trois styles : texte, anneaux ou compact (la pire valeur
   seule). À 100 %, le compte à rebours du reset remplace la valeur (`↻23m`).
 - Notifications aux seuils choisis (fenêtre courte / longue), alerte si la

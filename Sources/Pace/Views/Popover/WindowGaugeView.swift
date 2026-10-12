@@ -14,6 +14,10 @@ struct WindowGaugeView: View {
 
     @EnvironmentObject private var store: UsageStore
     @EnvironmentObject private var settings: SettingsStore
+    @Environment(\.isPanelOpen) private var isOpen
+    @Environment(\.entranceDelay) private var entranceDelay
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var hidden = false
 
     private var window: UsageWindow { raw.effective(at: now) }
     private var expired: Bool { raw.isExpired(at: now) }
@@ -24,11 +28,15 @@ struct WindowGaugeView: View {
         settings.showPacing ? store.pacing(for: provider, slot: slot, now: now) : nil
     }
 
-    private var marker: Double? {
-        guard settings.showPacing, !expired,
-              let reset = window.resetsAt,
-              let seconds = window.windowSeconds, seconds > 0 else { return nil }
-        return min(max(1 - reset.timeIntervalSince(now) / seconds, 0), 1)
+    private var projection: Double? {
+        guard !expired, let pacing else { return nil }
+        return pacing.projected / 100
+    }
+
+    private var glow: Color? {
+        guard isOpen, !expired else { return nil }
+        if level == .critical { return .red }
+        return pacing?.level == .tight ? .orange : nil
     }
 
     var body: some View {
@@ -51,6 +59,15 @@ struct WindowGaugeView: View {
                 }
             }
         }
+        .animation(Theme.smooth, value: window.utilization)
+        .animation(Theme.smooth, value: projection)
+        .onChange(of: isOpen, initial: true) { _, open in
+            if open {
+                withAnimation(Theme.fill.delay(entranceDelay + 0.08)) { hidden = false }
+            } else if !reduceMotion {
+                hidden = true
+            }
+        }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel((window.windowSeconds ?? 0) > 0 ? String(localized: "\(window.label) window") : window.label)
         .accessibilityValue(accessibilityValue)
@@ -58,13 +75,14 @@ struct WindowGaugeView: View {
 
     private func gauge(caption: String?) -> some View {
         RingGauge(
-            fraction: window.utilization / 100,
+            fraction: hidden ? 0 : window.utilization / 100,
             tint: tint,
-            marker: marker,
-            aheadTint: level == .ok ? .orange : nil
+            projection: hidden ? nil : projection,
+            glow: glow
         ) {
-            GaugeValue(percent: Int(window.utilization.rounded()), caption: caption, tint: tint)
+            GaugeValue(percent: hidden ? 0 : Int(window.utilization.rounded()), caption: caption, tint: tint)
         }
+        .help(projection == nil ? String() : String(localized: "Solid: used so far. Dotted: projected at reset at your current pace."))
     }
 
     private func lines(alignment: HorizontalAlignment) -> some View {
@@ -72,26 +90,30 @@ struct WindowGaugeView: View {
             if let reset = resetText {
                 InfoLine(icon: "arrow.clockwise", text: reset)
                     .foregroundStyle(.secondary)
-                    .help(expired ? reset : window.resetsAt.map(UsageFormat.resetDate) ?? reset)
+                    .help(resetDetail ?? reset)
             }
             if let pacing {
                 InfoLine(icon: pacing.icon, text: pacing.summary)
                     .foregroundStyle(pacing.color)
-                    .fontWeight(pacing.level == .tight ? .medium : .regular)
-                    .help(pacing.message)
+                    .fontWeight(pacing.level == .tight ? .semibold : .regular)
+                    .help(pacing.explanation)
             }
         }
         .font(.caption)
         .lineLimit(1)
+        .minimumScaleFactor(0.85)
+        .modifier(Entrance(delay: 0.18, offset: 4))
     }
 
     private var resetText: String? {
         if expired { return String(localized: "Reset") }
         guard let date = window.resetsAt else { return nil }
         let remaining = date.timeIntervalSince(now)
-        if remaining < 86400 { return UsageFormat.duration(remaining) }
-        if remaining < 6 * 86400 { return date.formatted(.dateTime.weekday(.abbreviated).hour().minute()) }
-        return date.formatted(.dateTime.day().month(.abbreviated))
+        if remaining < 86400 { return String(localized: "Resets in \(UsageFormat.duration(remaining))") }
+        if remaining < 6 * 86400 {
+            return String(localized: "Resets \(date.formatted(.dateTime.weekday(.abbreviated).hour().minute()))")
+        }
+        return String(localized: "Resets \(date.formatted(.dateTime.day().month(.abbreviated)))")
     }
 
     private var resetDetail: String? {
@@ -101,7 +123,7 @@ struct WindowGaugeView: View {
     }
 
     private var accessibilityValue: String {
-        [UsageFormat.percent(window.utilization), resetDetail, pacing?.message]
+        [UsageFormat.percent(window.utilization), resetDetail, pacing?.explanation]
             .compactMap { $0 }
             .joined(separator: ", ")
     }
@@ -131,7 +153,6 @@ private struct GaugeValue: View {
         }
         .lineLimit(1)
         .minimumScaleFactor(0.6)
-        .animation(Theme.smooth, value: percent)
     }
 }
 
