@@ -8,7 +8,7 @@
 
 Sans clic, sans télémétrie, sans dépendance.
 
-<img src="docs/img/menubar.png" width="340" alt="Barre de menu Pace">
+<img src="docs/img/menubar.png" width="384" alt="Barre de menu Pace avec les six connecteurs">
 
 </div>
 
@@ -20,7 +20,8 @@ mois). Les valeurs restent neutres et passent en orange puis en rouge près de
 la limite. Un clic ouvre le détail.
 
 <div align="center">
-<img src="docs/img/popover.png" width="340" alt="Popover Pace">
+<img src="docs/img/popover.png" width="340" alt="Popover Pace : Claude et Codex">
+<img src="docs/img/popover-more.png" width="340" alt="Popover Pace : Copilot et Cursor">
 </div>
 
 ## Fonctionnalités
