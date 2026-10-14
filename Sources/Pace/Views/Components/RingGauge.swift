@@ -51,6 +51,7 @@ private struct GlowArc: View {
     let value: Double
     let color: Color
     let lineWidth: CGFloat
+    @State private var bright = false
 
     var body: some View {
         Circle()
@@ -58,10 +59,9 @@ private struct GlowArc: View {
             .stroke(color, style: StrokeStyle(lineWidth: lineWidth + 2, lineCap: .round))
             .rotationEffect(.degrees(-90))
             .blur(radius: 6)
-            .phaseAnimator([false, true]) { content, bright in
-                content.opacity(bright ? 0.75 : 0.15)
-            } animation: { _ in
-                .easeInOut(duration: 1.3)
+            .opacity(bright ? 0.75 : 0.15)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 1.3).repeatCount(5, autoreverses: true)) { bright = true }
             }
     }
 }

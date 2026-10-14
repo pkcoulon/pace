@@ -255,17 +255,16 @@ private struct UsageChartPlot: View {
 
 private struct PulseDot: View {
     let color: Color
+    @State private var expanded = false
 
     var body: some View {
         Circle()
             .fill(color.opacity(0.45))
             .frame(width: 12, height: 12)
-            .phaseAnimator([false, true]) { content, expanded in
-                content
-                    .scaleEffect(expanded ? 2 : 0.6)
-                    .opacity(expanded ? 0 : 0.9)
-            } animation: { expanded in
-                expanded ? .easeOut(duration: 1.5) : nil
+            .scaleEffect(expanded ? 2 : 0.6)
+            .opacity(expanded ? 0 : 0.9)
+            .onAppear {
+                withAnimation(.easeOut(duration: 1.5).repeatCount(3, autoreverses: false)) { expanded = true }
             }
     }
 }

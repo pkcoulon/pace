@@ -3,6 +3,13 @@ import Combine
 
 @MainActor
 final class StatusItemController: NSObject {
+    private struct Rendered: Equatable {
+        var items: [MenuBarItem]
+        var style: MenuBarStyle
+        var highlightOnlyAlerts: Bool
+        var dark: Bool
+    }
+
     var onClick: ((NSRect) -> Void)?
 
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -11,6 +18,7 @@ final class StatusItemController: NSObject {
     private var cancellables: Set<AnyCancellable> = []
     private var appearanceObservation: NSKeyValueObservation?
     private var timer: Timer?
+    private var rendered: Rendered?
 
     init(store: UsageStore, settings: SettingsStore) {
         self.store = store
@@ -55,14 +63,20 @@ final class StatusItemController: NSObject {
 
     private func render() {
         guard let button = item.button else { return }
-        let dark = button.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        let items = MenuBarComposer.items(store: store, settings: settings, now: Date())
-        button.image = MenuBarRenderer.image(
-            for: items,
+        let state = Rendered(
+            items: MenuBarComposer.items(store: store, settings: settings, now: Date()),
             style: settings.menuBarStyle,
             highlightOnlyAlerts: settings.highlightOnlyAlerts,
-            dark: dark
+            dark: button.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
         )
-        button.setAccessibilityLabel(MenuBarComposer.accessibilityLabel(items))
+        guard state != rendered else { return }
+        rendered = state
+        button.image = MenuBarRenderer.image(
+            for: state.items,
+            style: state.style,
+            highlightOnlyAlerts: state.highlightOnlyAlerts,
+            dark: state.dark
+        )
+        button.setAccessibilityLabel(MenuBarComposer.accessibilityLabel(state.items))
     }
 }
