@@ -44,8 +44,8 @@ struct ProviderStatus: Sendable, Equatable {
     static let unknown = ProviderStatus(level: .unknown, detail: nil)
 }
 
-/// Interroge les pages de statut Statuspage d'Anthropic et d'OpenAI et retient
-/// le pire état parmi les composants qui nous concernent.
+/// Interroge les pages Statuspage des connecteurs qui en ont une (Claude, Codex,
+/// Copilot, Cursor) et retient le pire état parmi les composants qui nous concernent.
 struct StatusService: Sendable {
     private let session: URLSession
 

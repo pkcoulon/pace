@@ -112,6 +112,8 @@ et uniquement pour les connecteurs activés :
 | `chatgpt.com` | usage Codex |
 | `auth.openai.com` | refresh du token Codex (> 8 jours) |
 | `api.github.com` | usage Copilot ; vérification de mise à jour si activée (1 fois par jour au plus) |
+| `github.com` | « Se connecter avec GitHub » (Copilot), seulement pendant la connexion |
+| `<domaine>.ghe.com`, `api.<domaine>.ghe.com` | connexion et usage Copilot, si un domaine d'entreprise est saisi |
 | `api2.cursor.sh` | usage Cursor |
 | `api.z.ai` | usage z.ai (ou `open.bigmodel.cn`, `dev.bigmodel.cn` si Claude Code y pointe) |
 | `openrouter.ai` | usage OpenRouter |
@@ -120,7 +122,7 @@ et uniquement pour les connecteurs activés :
 Les identifiants sont lus là où les outils les rangent déjà : Trousseau,
 `~/.codex/auth.json`, `~/.config/gh` et `~/.config/github-copilot`, la base
 locale de Cursor (lecture seule), `~/.claude/settings.json` pour z.ai. Les clés
-collées dans Pace vont au Trousseau.
+collées dans Pace et le jeton de « Se connecter avec GitHub » vont au Trousseau.
 
 ## Crédits
 
